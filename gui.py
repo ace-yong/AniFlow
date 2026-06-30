@@ -13,7 +13,7 @@ import urllib.request
 import webbrowser
 import shutil
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 def _app_dir():
     """返回 AniFlow 数据目录（config、logs、tools 等都在此目录下）"""
@@ -1250,13 +1250,13 @@ class MainWindow(QMainWindow):
         toolbar.addStretch()
 
         self._version_label = QLabel(f'v{VERSION}')
-        self._version_label.setStyleSheet('color: #999; font-size: 11px; padding: 0 6px;')
+        self._version_label.setStyleSheet('color: #999; font-size: 12px; padding: 0 8px; font-family: "Segoe UI", "Microsoft YaHei";')
         toolbar.addWidget(self._version_label)
 
         self._check_update_btn = QPushButton('检查更新')
-        self._check_update_btn.setFont(QFont('Segoe UI', 10))
+        self._check_update_btn.setFont(QFont('Segoe UI', 12))
         self._check_update_btn.setStyleSheet("""
-            QPushButton { background: transparent; color: #888; padding: 4px 10px; border: 1px solid rgba(200,200,200,150); border-radius: 4px; font-size: 11px; }
+            QPushButton { background-color: rgba(255,255,255,180); color: #555; padding: 7px 14px; border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; font-size: 12px; }
             QPushButton:hover { border-color: rgba(64, 158, 255, 200); color: rgb(64, 158, 255); }
             QPushButton:disabled { color: #ccc; }
         """)

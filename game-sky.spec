@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='gamesky',
+    name='game-sky',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

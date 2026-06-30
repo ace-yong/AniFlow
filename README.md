@@ -1,4 +1,4 @@
-# gamesky
+# game-sky
 
 绝区零 (Zenless Zone Zero) + 终末地 (Endfield) 自动化调度工具。
 
@@ -15,13 +15,13 @@
 
 ### 下载
 
-从 [Releases](https://github.com/anomalyco/gamesky/releases) 下载最新版 `gamesky.exe`，放在任意目录，双击运行。
+从 [Releases](https://github.com/ace-yong/game-sky/releases) 下载最新版 `game-sky.exe`，放在任意目录，双击运行。
 
-首次启动会提权（管理员权限），并在 exe 同级创建 `gamesky/` 数据目录：
+首次启动会提权（管理员权限），并在 exe 同级创建 `game-sky/` 数据目录：
 
 ```
-gamesky.exe
-gamesky/
+game-sky.exe
+game-sky/
 ├── config/
 │   └── settings.json     ← 配置文件（自动生成）
 ├── logs/                  ← 执行日志
@@ -75,7 +75,7 @@ gamesky/
 ## 命令行
 
 ```bash
-gamesky.exe                    # GUI 模式
+game-sky.exe                    # GUI 模式
 python main.py daily           # 执行日常任务
 python main.py weekly          # 执行周常任务
 python main.py schedule        # 定时调度模式
@@ -89,8 +89,8 @@ python main.py status          # 查看状态
 ## 从源码运行
 
 ```bash
-git clone https://github.com/anomalyco/gamesky.git
-cd gamesky
+git clone https://github.com/ace-yong/game-sky.git
+cd game-sky
 pip install -r requirements.txt
 python gui.py
 ```
@@ -98,7 +98,7 @@ python gui.py
 ## 目录结构
 
 ```
-gamesky/
+game-sky/
 ├── gui.py                    # PyQt5 主界面
 ├── main.py                   # 命令行入口
 ├── src/
@@ -110,15 +110,15 @@ gamesky/
 ├── config/
 │   ├── settings.example.json # 配置模板
 │   └── accounts.example.json # 账号模板
-└── gamesky.spec              # PyInstaller 打包配置
+└── game-sky.spec              # PyInstaller 打包配置
 ```
 
 ## 打包
 
 ```bash
 pip install PyInstaller
-python -m PyInstaller gamesky.spec
-# 输出: dist/gamesky.exe
+python -m PyInstaller game-sky.spec
+# 输出: dist/game-sky.exe
 ```
 
 ## 技术栈

@@ -81,6 +81,8 @@ AniFlow/
 ## 使用方法
 
 > 使用前请确保 OneDragon 和 MaaEnd 已打开并配置好各自的功能，AniFlow 负责调度启动它们。
+>
+> 参考官方文档：[OneDragon](https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon) | [MaaEnd](https://github.com/MaaXYZ/MaaEnd)
 
 ### 一键运行
 

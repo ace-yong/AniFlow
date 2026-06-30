@@ -813,7 +813,7 @@ class _ToolsTab(QWidget):
         dl_od = QPushButton('📥 下载并安装 OneDragon (Gitee)')
         dl_od.setFont(QFont('Segoe UI', 11))
         dl_od.setStyleSheet("""
-            QPushButton { background: rgba(64,158,255,0.1); color: rgb(64,158,255); padding: 6px 12px; border: 1px solid rgba(64,158,255,0.3); border-radius: 4px; }
+            QPushButton { background: rgba(64,158,255,0.1); color: rgb(64,158,255); padding: 8px 14px; border: 1px solid rgba(64,158,255,0.3); border-radius: 4px; }
             QPushButton:hover { background: rgba(64,158,255,0.2); }
         """)
         dl_od.clicked.connect(lambda: self._download_onedragon(dl_od))
@@ -844,7 +844,7 @@ class _ToolsTab(QWidget):
         dl_ma = QPushButton('📥 下载并安装 MaaEnd (GitHub)')
         dl_ma.setFont(QFont('Segoe UI', 11))
         dl_ma.setStyleSheet("""
-            QPushButton { background: rgba(114,46,209,0.1); color: rgb(114,46,209); padding: 6px 12px; border: 1px solid rgba(114,46,209,0.3); border-radius: 4px; }
+            QPushButton { background: rgba(114,46,209,0.1); color: rgb(114,46,209); padding: 8px 14px; border: 1px solid rgba(114,46,209,0.3); border-radius: 4px; }
             QPushButton:hover { background: rgba(114,46,209,0.2); }
         """)
         dl_ma.clicked.connect(lambda: self._download_maaend(dl_ma))

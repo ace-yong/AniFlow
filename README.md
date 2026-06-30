@@ -15,7 +15,7 @@ AniFlow 是一款面向二次元游戏的自动化辅助启动器，提供以下
 - **独立控制**：每个工具可单独「打开」/「关闭」，不依赖管道
 - **实时日志**：工具输出和运行状态实时显示，持久化到日志文件
 
-![](screenshots/main.png)
+<a href="screenshots/main.png" target="_blank"><img src="screenshots/main.png" alt="主界面" width="650"></a>
 
 ## 快速开始
 
@@ -38,7 +38,7 @@ AniFlow/
 
 ### 配置工具路径
 
-![](screenshots/paths.png)
+<a href="screenshots/paths.png" target="_blank"><img src="screenshots/paths.png" alt="工具路径配置" width="580"></a>
 
 点击 **⚙ 配置 → 工具路径**，有三种方式设置：
 
@@ -57,7 +57,7 @@ AniFlow/
 
 ### 配置管道顺序
 
-![](screenshots/tools.png)
+<a href="screenshots/tools.png" target="_blank"><img src="screenshots/tools.png" alt="管道顺序配置" width="580"></a>
 
 点击 **⚙ 配置 → 工具配置**，勾选要执行的工具，拖动调整执行顺序。
 
@@ -68,7 +68,7 @@ AniFlow/
 
 ### 执行完成后动作
 
-![](screenshots/system.png)
+<a href="screenshots/system.png" target="_blank"><img src="screenshots/system.png" alt="系统配置" width="580"></a>
 
 点击 **⚙ 配置 → 系统配置**，设置全部任务完成后的行为：
 

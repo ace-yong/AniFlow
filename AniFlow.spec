@@ -6,7 +6,7 @@ a = Analysis(
     ['gui.py'],
     pathex=['.'],
     binaries=[],
-    datas=[ (src, dst) for src, dst, _ in Tree('src', prefix='src') ] + [('icon.ico', '.')],
+    datas=[ (src, dst) for src, dst, _ in Tree('src', prefix='src') ] + [('icon.ico', '.'), ('wallpaper_source.jpg', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

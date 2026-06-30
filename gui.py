@@ -943,7 +943,10 @@ class _ToolsTab(QWidget):
             bases.append(os.path.join(d, 'onedragon'))
             bases.append(os.path.join(d, 'vibecode', 'onedragon'))
             bases.append(os.path.join(d, 'Projects', 'onedragon'))
+            bases.append(os.path.join(d, 'Program Files', 'onedragon'))
         bases.append(os.path.join(os.path.expanduser('~'), 'onedragon'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'onedragon'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'onedragon'))
         for base in bases:
             p = os.path.join(base, 'src', 'zzz_od', 'gui', 'app.py')
             if os.path.isfile(p):
@@ -958,7 +961,10 @@ class _ToolsTab(QWidget):
             bases.append(os.path.join(d, 'onedragon'))
             bases.append(os.path.join(d, 'vibecode', 'onedragon'))
             bases.append(os.path.join(d, 'Projects', 'onedragon'))
+            bases.append(os.path.join(d, 'Program Files', 'onedragon'))
         bases.append(os.path.join(os.path.expanduser('~'), 'onedragon'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'onedragon'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'onedragon'))
         for base in bases:
             p = os.path.join(base, '.venv', 'Scripts', 'pythonw.exe')
             if os.path.isfile(p):
@@ -975,7 +981,11 @@ class _ToolsTab(QWidget):
         for d in drives:
             bases.append(os.path.join(d, 'MaaEnd'))
             bases.append(os.path.join(d, 'vibecode', 'MaaEnd'))
+            bases.append(os.path.join(d, 'Program Files', 'MaaEnd'))
+            bases.append(os.path.join(d, 'Program Files (x86)', 'MaaEnd'))
         bases.append(os.path.join(os.path.expanduser('~'), 'MaaEnd'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'MaaEnd'))
+        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'MaaEnd'))
         for base in bases:
             p = os.path.join(base, 'MaaEnd.exe')
             if os.path.isfile(p):
@@ -1035,7 +1045,9 @@ class _ToolsTab(QWidget):
                 else:
                     self._status.setText(f'正在运行: {cmd} -> {target}...')
                     QApplication.processEvents()
-                    subprocess.run(cmd.split() + [target], check=True, timeout=300)
+                    env = os.environ.copy()
+                    env['GIT_TERMINAL_PROMPT'] = '0'
+                    subprocess.run(cmd.split() + [target], check=True, timeout=300, capture_output=True, env=env)
                     after_cb(target)
                 self._status.setText(f'{name} 下载完成！路径已自动填入。')
             except Exception as e:
@@ -1178,7 +1190,9 @@ class MainWindow(QMainWindow):
     def _setup_background(self):
         path = r'D:\壁纸\二次元\001 (19).jpg'
         if not os.path.exists(path):
-            return
+            path = os.path.join(os.path.dirname(__file__), 'wallpaper_source.jpg')
+            if not os.path.exists(path):
+                return
         pix = QPixmap(path)
         if pix.isNull():
             return

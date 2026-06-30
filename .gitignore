@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Build
+build/
+dist/
+
+# Project data (user-specific)
+config/settings.json
+config/accounts.json
+config/task_definitions.json
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Gamesky runtime
+gamesky/

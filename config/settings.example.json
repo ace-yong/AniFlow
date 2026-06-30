@@ -1,0 +1,27 @@
+{
+  "onedragon": {
+    "name": "OneDragon",
+    "description": "绝区零自动化工具",
+    "path": "",
+    "python_path": "python",
+    "enabled": true
+  },
+  "maaend": {
+    "name": "MaaEnd",
+    "description": "终末地自动化工具",
+    "path": "",
+    "enabled": true,
+    "headless": false
+  },
+  "game_paths": {
+    "zenless_zone_zero": "",
+    "endfield": ""
+  },
+  "execution": {
+    "timeout": 7200,
+    "retry_count": 3,
+    "switch_delay": 10
+  },
+  "sequence": ["onedragon", "maaend"],
+  "post_action": "close_game"
+}

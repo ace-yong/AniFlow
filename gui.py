@@ -979,6 +979,10 @@ class _ToolsTab(QWidget):
             try:
                 base_dir = self._get_base_dir()
                 target = os.path.join(base_dir, 'tools', name)
+                if cmd != 'github':
+                    if os.path.exists(target):
+                        import shutil
+                        shutil.rmtree(target, ignore_errors=True)
                 if cmd == 'github':
                     self._status.setText('正在获取 MaaEnd 最新版本信息...')
                     QApplication.processEvents()
@@ -1016,7 +1020,18 @@ class _ToolsTab(QWidget):
                     after_cb(target)
                 self._status.setText(f'{name} 下载完成！路径已自动填入。')
             except Exception as e:
-                self._status.setText(f'{name} 下载失败: {e}')
+                err_msg = f'{name} 下载失败: {e}'
+                self._status.setText(err_msg)
+                # 日志写入
+                log_dir = os.path.join(_app_dir(), 'logs')
+                os.makedirs(log_dir, exist_ok=True)
+                log_path = os.path.join(log_dir, f'download_error_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+                with open(log_path, 'w', encoding='utf-8') as f:
+                    f.write('\ufeff')
+                    f.write(f'[ERROR] {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
+                    f.write(f'{err_msg}\n')
+                    import traceback
+                    traceback.print_exc(file=f)
             finally:
                 btn.setText(orig)
                 btn.setEnabled(True)

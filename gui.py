@@ -329,6 +329,8 @@ class Api:
 
 
 if __name__ == '__main__':
+    import ctypes
+    ctypes.windll.user32.MessageBoxW(0, 'AniFlow 正在启动...', 'AniFlow', 0x40)
     api = Api()
     _script_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
     html = os.path.join(_script_dir, 'static', 'index.html')
@@ -338,7 +340,6 @@ if __name__ == '__main__':
     try:
         webview.create_window('AniFlow v' + VERSION, html, js_api=api, width=1100, height=700)
     except Exception as e:
-        import ctypes
         ctypes.windll.user32.MessageBoxW(0, '启动失败: {}'.format(e), 'AniFlow Error', 0x10)
 
     def _detect_ma_path(self, drives=None):

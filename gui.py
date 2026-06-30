@@ -959,6 +959,7 @@ class _ToolsTab(QWidget):
         return ''
 
     def _detect_od_path(self, drives=None):
+        from collections import deque
         if drives is None:
             drives = ['E:\\']
         roots = list(drives)

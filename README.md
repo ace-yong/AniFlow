@@ -109,28 +109,16 @@ python main.py status          # 查看状态
 
 ## 从源码运行
 
-### PyQt5 版本（旧）
-
-```bash
-git clone https://github.com/ace-yong/AniFlow.git
-cd AniFlow
-pip install -r requirements.txt
-python gui.py
-```
-
-### PyWebView 版本（新）
-
 ```bash
 pip install pywebview
-python gui_web.py
+python gui.py
 ```
 
 ## 目录结构
 
 ```
 AniFlow/
-├── gui.py                    # PyQt5 主界面（旧版）
-├── gui_web.py                # PyWebView 主界面（新版，推荐）
+├── gui.py                    # 主界面（PyWebView）
 ├── main.py                   # 命令行入口
 ├── static/                   # Web UI 资源
 │   ├── index.html            # 主界面
@@ -151,7 +139,7 @@ AniFlow/
 ## 打包
 
 ```bash
-pip install PyInstaller
+pip install PyInstaller pywebview
 python -m PyInstaller AniFlow.spec
 # 输出: dist/AniFlow.exe
 ```

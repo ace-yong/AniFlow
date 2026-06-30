@@ -1,11 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_data_files
 
 a = Analysis(
     ['gui.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
-    datas=[],
+    datas=[ (src, dst) for src, dst, _ in Tree('src', prefix='src') ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

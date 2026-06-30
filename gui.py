@@ -744,50 +744,10 @@ class _ToolsTab(QWidget):
         title.setStyleSheet('color: #1a1a1a;')
         layout.addWidget(title)
 
-        desc = QLabel('配置各工具的路径，可手动填写、扫描本地安装，或下载安装。')
+        desc = QLabel('配置各工具的路径，可手动填写、检测本地安装，或下载安装。')
         desc.setStyleSheet('color: #888; font-size: 12px;')
         desc.setWordWrap(True)
         layout.addWidget(desc)
-
-        from PyQt5.QtWidgets import QMenu, QAction
-        scan_row = QHBoxLayout()
-        scan_btn = QPushButton('🔍 扫描本地插件')
-        scan_btn.setFont(QFont('Segoe UI', 11))
-        scan_btn.setStyleSheet("""
-            QPushButton { background: rgb(64,158,255); color: white; padding: 6px 18px; border: none; border-radius: 4px; }
-            QPushButton:hover { background: rgb(96,184,255); }
-        """)
-        scan_btn.clicked.connect(self._scan_local)
-        scan_row.addWidget(scan_btn)
-        scan_row.addSpacing(6)
-
-        self._drive_btn = QPushButton('E:\\')
-        self._drive_btn.setFont(QFont('Segoe UI', 11))
-        self._drive_btn.setStyleSheet("""
-            QPushButton { background: white; color: #333; padding: 4px 14px; border: 1px solid #bbb; border-radius: 4px; min-width: 70px; }
-            QPushButton:hover { border-color: rgb(64,158,255); }
-        """)
-        drive_menu = QMenu(self._drive_btn)
-        drive_menu.setStyleSheet("""
-            QMenu { background: white; border: 1px solid #ccc; padding: 4px; }
-            QMenu::item { padding: 6px 24px; font-size: 12px; }
-            QMenu::item:selected { background: rgb(64,158,255); color: white; }
-        """)
-        all_action = QAction('全部盘符', self._drive_btn)
-        all_action.setData('all')
-        drive_menu.addAction(all_action)
-        drive_menu.addSeparator()
-        for d in range(ord('C'), ord('Z') + 1):
-            letter = chr(d)
-            if os.path.exists(f'{letter}:\\'):
-                act = QAction(f'{letter}:\\', self._drive_btn)
-                act.setData(f'{letter}:\\')
-                drive_menu.addAction(act)
-        drive_menu.triggered.connect(lambda act: self._drive_btn.setText(act.text()))
-        self._drive_btn.setMenu(drive_menu)
-        scan_row.addWidget(self._drive_btn)
-        scan_row.addStretch()
-        layout.addLayout(scan_row)
 
         def make_row(label_text, default_val, detect_cb=None):
             row = QHBoxLayout()
@@ -830,19 +790,13 @@ class _ToolsTab(QWidget):
         od_layout.setSpacing(8)
 
         def _detect_od_path():
-            t = self._drive_btn.text()
-            drives = [t.rstrip('\\') + '\\'] if t != '全部盘符' else None
-            return self._detect_od_path(drives)
+            return self._detect_od_path(None)
 
         def _detect_od_python():
-            t = self._drive_btn.text()
-            drives = [t.rstrip('\\') + '\\'] if t != '全部盘符' else None
-            return self._detect_od_python(drives)
+            return self._detect_od_python(None)
 
         def _detect_ma_path():
-            t = self._drive_btn.text()
-            drives = [t.rstrip('\\') + '\\'] if t != '全部盘符' else None
-            return self._detect_ma_path(drives)
+            return self._detect_ma_path(None)
 
         lbl, self.od_path, browse_od = make_row('脚本路径', od.get('path', ''), _detect_od_path)
         browse_od.clicked.connect(lambda: self._browse_file(self.od_path, 'Python 文件 (*.py)'))
@@ -893,47 +847,6 @@ class _ToolsTab(QWidget):
         path, _ = QFileDialog.getOpenFileName(self, '选择文件', '', filter_str)
         if path:
             edit.setText(path)
-
-    def _scan_local(self):
-        self._status.setText('正在扫描本地插件...')
-        QApplication.processEvents()
-        drive_text = self._drive_btn.text()
-        found = []
-
-        def try_fill(edit, detect_fn):
-            if edit.text() and os.path.isfile(edit.text()):
-                return ''
-            return detect_fn()
-
-        if drive_text == '全部盘符':
-            drives = []
-            for d in range(ord('C'), ord('Z') + 1):
-                letter = chr(d)
-                if os.path.exists(f'{letter}:\\'):
-                    drives.append(f'{letter}:\\')
-        else:
-            drives = [drive_text.rstrip('\\') + '\\']
-
-        od_path = try_fill(self.od_path, lambda: self._detect_od_path(drives))
-        if od_path:
-            self.od_path.setText(od_path)
-            found.append('OneDragon')
-
-        od_py = try_fill(self.od_python, lambda: self._detect_od_python(drives))
-        if od_py:
-            self.od_python.setText(od_py)
-            if 'OneDragon' not in found:
-                found.append('OneDragon')
-
-        ma_path = try_fill(self.ma_path, lambda: self._detect_ma_path(drives))
-        if ma_path:
-            self.ma_path.setText(ma_path)
-            found.append('MaaEnd')
-
-        if found:
-            self._status.setText(f'已找到并填入: {", ".join(found)}')
-        else:
-            self._status.setText('未扫描到本地插件，请手动填写路径或点击下方下载安装。')
 
     @staticmethod
     def _search_deep(roots, targets, max_depth=4):

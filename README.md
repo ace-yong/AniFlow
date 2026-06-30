@@ -4,6 +4,8 @@
 
 整合 [OneDragon](https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon)（绝区零）和 [MaaEnd](https://github.com/MaaXYZ/MaaEnd)（终末地），提供统一的可视化管理界面和一键运行管道。
 
+后续将集成更多游戏自动化工具，持续更新中。
+
 ## 快速开始
 
 ### 下载

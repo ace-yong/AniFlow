@@ -143,7 +143,7 @@ class ProcessManager:
             if not tool_path or not os.path.exists(tool_path):
                 self._notify(game_type, 'failed')
                 return False
-            args = [tool_path, '--autostart', '-i', '全套日常']
+            args = [tool_path]
             cwd = os.path.dirname(tool_path)
         elif game_type == 'zenless_zone_zero':
             tool_path = settings.get('onedragon', {}).get('path', '')

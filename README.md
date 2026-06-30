@@ -4,13 +4,6 @@
 
 整合 [OneDragon](https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon)（绝区零）和 [MaaEnd](https://github.com/MaaXYZ/MaaEnd)（终末地），提供统一的可视化管理界面和一键运行管道。
 
-## 截图
-
-<!-- TODO: 添加实际截图 -->
-| 主界面 | 工具路径配置 | 系统配置 |
-|--------|-------------|---------|
-| ![](screenshots/main.png) | ![](screenshots/tools.png) | ![](screenshots/system.png) |
-
 ## 快速开始
 
 ### 下载
@@ -30,6 +23,8 @@ game-sky/
 
 ### 配置工具路径
 
+![](screenshots/paths.png)
+
 点击 **⚙ 配置 → 工具路径**，有三种方式设置：
 
 **方式一：扫描本地安装**
@@ -47,6 +42,8 @@ game-sky/
 
 ### 配置管道顺序
 
+![](screenshots/tools.png)
+
 点击 **⚙ 配置 → 工具配置**，勾选要执行的工具，拖动调整执行顺序。
 
 | 选项 | 说明 |
@@ -56,9 +53,13 @@ game-sky/
 
 ### 一键运行
 
+![](screenshots/main.png)
+
 点击 **▶ 一键运行**，按配置的顺序依次执行。右侧日志实时显示工具输出。
 
 ### 执行完成后动作
+
+![](screenshots/system.png)
 
 点击 **⚙ 配置 → 系统配置**，设置全部任务完成后的行为：
 

@@ -935,41 +935,63 @@ class _ToolsTab(QWidget):
         else:
             self._status.setText('未扫描到本地插件，请手动填写路径或点击下方下载安装。')
 
+    @staticmethod
+    def _search_deep(roots, targets, max_depth=4):
+        """在 roots 目录列表中递归搜索最多 max_depth 层，返回第一个匹配 target 文件的路径"""
+        from collections import deque
+        for root in roots:
+            if not os.path.isdir(root):
+                continue
+            q = deque([(root, 0)])
+            while q:
+                dirpath, depth = q.popleft()
+                if depth > max_depth:
+                    continue
+                try:
+                    for name in os.listdir(dirpath):
+                        full = os.path.join(dirpath, name)
+                        if os.path.isfile(full) and name in targets:
+                            return full
+                        if os.path.isdir(full):
+                            q.append((full, depth + 1))
+                except PermissionError:
+                    continue
+        return ''
+
     def _detect_od_path(self, drives=None):
         if drives is None:
             drives = ['E:\\']
-        bases = []
-        for d in drives:
-            bases.append(os.path.join(d, 'onedragon'))
-            bases.append(os.path.join(d, 'vibecode', 'onedragon'))
-            bases.append(os.path.join(d, 'Projects', 'onedragon'))
-            bases.append(os.path.join(d, 'Program Files', 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'onedragon'))
-        for base in bases:
-            p = os.path.join(base, 'src', 'zzz_od', 'gui', 'app.py')
-            if os.path.isfile(p):
-                return p
+        roots = list(drives)
+        roots.append(os.path.expanduser('~'))
+        # 先搜 onedragon 目录名，再在里面找 app.py
+        for root in roots:
+            if not os.path.isdir(root):
+                continue
+            q = deque([(root, 0)])
+            while q:
+                dirpath, depth = q.popleft()
+                if depth > 4:
+                    continue
+                try:
+                    for name in os.listdir(dirpath):
+                        full = os.path.join(dirpath, name)
+                        if os.path.isdir(full) and name.lower() == 'onedragon':
+                            p = os.path.join(full, 'src', 'zzz_od', 'gui', 'app.py')
+                            if os.path.isfile(p):
+                                return p
+                        if os.path.isdir(full):
+                            q.append((full, depth + 1))
+                except PermissionError:
+                    continue
         return ''
 
     def _detect_od_python(self, drives=None):
-        if drives is None:
-            drives = ['E:\\']
-        bases = []
-        for d in drives:
-            bases.append(os.path.join(d, 'onedragon'))
-            bases.append(os.path.join(d, 'vibecode', 'onedragon'))
-            bases.append(os.path.join(d, 'Projects', 'onedragon'))
-            bases.append(os.path.join(d, 'Program Files', 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'onedragon'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'onedragon'))
-        for base in bases:
-            p = os.path.join(base, '.venv', 'Scripts', 'pythonw.exe')
-            if os.path.isfile(p):
-                return p
-            p = os.path.join(base, '.venv', 'Scripts', 'python.exe')
+        od_path = self._detect_od_path(drives)
+        if not od_path:
+            return ''
+        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(od_path))))
+        for py in ['pythonw.exe', 'python.exe']:
+            p = os.path.join(base, '.venv', 'Scripts', py)
             if os.path.isfile(p):
                 return p
         return ''
@@ -977,20 +999,9 @@ class _ToolsTab(QWidget):
     def _detect_ma_path(self, drives=None):
         if drives is None:
             drives = ['E:\\']
-        bases = []
-        for d in drives:
-            bases.append(os.path.join(d, 'MaaEnd'))
-            bases.append(os.path.join(d, 'vibecode', 'MaaEnd'))
-            bases.append(os.path.join(d, 'Program Files', 'MaaEnd'))
-            bases.append(os.path.join(d, 'Program Files (x86)', 'MaaEnd'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'MaaEnd'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Downloads', 'MaaEnd'))
-        bases.append(os.path.join(os.path.expanduser('~'), 'Desktop', 'MaaEnd'))
-        for base in bases:
-            p = os.path.join(base, 'MaaEnd.exe')
-            if os.path.isfile(p):
-                return p
-        return ''
+        roots = list(drives)
+        roots.append(os.path.expanduser('~'))
+        return self._search_deep(roots, {'MaaEnd.exe'}, 5)
 
     def _get_base_dir(self):
         return _app_dir()

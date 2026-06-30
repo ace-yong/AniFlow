@@ -26,7 +26,12 @@ Thumbs.db
 
 # AniFlow runtime
 AniFlow/
+# Test output
 stderr*.txt
 stdout*.txt
-stderr.txt
-stdout.txt
+e.txt
+o.txt
+err.txt
+out.txt
+
+# IDE

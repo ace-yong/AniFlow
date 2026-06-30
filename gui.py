@@ -1011,7 +1011,8 @@ class _ToolsTab(QWidget):
                     QApplication.processEvents()
                     env = os.environ.copy()
                     env['GIT_TERMINAL_PROMPT'] = '0'
-                    subprocess.run(cmd.split() + [target], check=True, timeout=300, capture_output=True, env=env)
+                    git_cmd = ['git', '-c', 'credential.helper='] + cmd.split()[1:] + [target]
+                    subprocess.run(git_cmd, check=True, timeout=300, capture_output=True, env=env)
                     after_cb(target)
                 self._status.setText(f'{name} 下载完成！路径已自动填入。')
             except Exception as e:

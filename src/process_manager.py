@@ -141,6 +141,7 @@ class ProcessManager:
         if game_type == 'endfield':
             tool_path = settings.get('maaend', {}).get('path', '')
             if not tool_path or not os.path.exists(tool_path):
+                self._notify(game_type, 'failed')
                 return False
             args = [tool_path]
             cwd = os.path.dirname(tool_path)
@@ -148,6 +149,7 @@ class ProcessManager:
             tool_path = settings.get('onedragon', {}).get('path', '')
             python_path = settings.get('onedragon', {}).get('python_path', 'python')
             if not tool_path or not os.path.exists(tool_path) or not os.path.exists(python_path):
+                self._notify(game_type, 'failed')
                 return False
             project_dir = os.path.dirname(os.path.dirname(os.path.dirname(python_path)))
             env = os.environ.copy()

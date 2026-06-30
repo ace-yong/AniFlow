@@ -21,13 +21,19 @@ def _migrate_config():
     dst = os.path.join(_app_dir(), 'config')
     if os.path.exists(os.path.join(dst, 'settings.json')):
         return  # 已有新配置
+    exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(exe_dir, 'config', 'settings.json'),
+        os.path.join(os.path.dirname(exe_dir), 'config', 'settings.json'),
+    ]
     for old_name in ['game-sky', 'gamesky']:
-        src = os.path.join(os.path.dirname(_app_dir()), old_name, 'config', 'settings.json')
+        candidates.append(os.path.join(exe_dir, old_name, 'config', 'settings.json'))
+    candidates.append(os.path.join(os.getcwd(), 'config', 'settings.json'))
+    for src in candidates:
         if os.path.exists(src):
             os.makedirs(dst, exist_ok=True)
             import shutil
             shutil.copy2(src, os.path.join(dst, 'settings.json'))
-            # 也迁移 accounts 和 task_definitions
             for f in ['accounts.json', 'task_definitions.json']:
                 s = os.path.join(os.path.dirname(src), f)
                 if os.path.exists(s):

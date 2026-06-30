@@ -128,3 +128,7 @@ python -m PyInstaller game-sky.spec
 - **PyInstaller**（打包单文件 exe）
 - 管理员权限提权（`ctypes.windll.shell32.ShellExecuteW`）
 - 后台线程执行管道，`QApplication.processEvents` 保持 UI 响应
+
+---
+
+如果这个项目对你有帮助，欢迎点个 ⭐ Star 支持一下！

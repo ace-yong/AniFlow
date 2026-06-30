@@ -3,9 +3,7 @@
 import sys, os, json, threading, urllib.request, traceback, shutil
 from datetime import datetime
 
-_script_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(_script_dir, 'src'))
-from process_manager import ProcessManager
+from src.process_manager import ProcessManager
 
 VERSION = "1.1.0"
 

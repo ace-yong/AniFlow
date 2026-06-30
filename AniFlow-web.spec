@@ -4,7 +4,7 @@ a = Analysis(
     ['gui_web.py'],
     pathex=['.'],
     binaries=[],
-    datas=[ (src, dst) for src, dst, _ in Tree('src', prefix='src') ] + [('static', 'static'), ('icon.ico', '.')],
+    datas=[ ('src', 'src'), ('static', 'static'), ('icon.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

@@ -15,7 +15,7 @@ import shutil
 import traceback
 
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 
 def _app_dir():
     """返回 AniFlow 数据目录（config、logs、tools 等都在此目录下）"""

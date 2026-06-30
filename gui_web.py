@@ -328,12 +328,17 @@ class Api:
         path = self._detect_od_path(drives)
         if not path:
             return ''
-        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(path))))
-        for py in ['pythonw.exe', 'python.exe']:
-            p = os.path.join(base, '.venv', 'Scripts', py)
-            if os.path.isfile(p):
-                return p
-        return ''
+
+
+if __name__ == '__main__':
+    _ensure_admin()
+    api = Api()
+    _script_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
+    html = os.path.join(_script_dir, 'static', 'index.html')
+    if not os.path.isfile(html):
+        html = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'index.html')
+    import webview
+    webview.create_window('AniFlow v' + VERSION, html, js_api=api, width=1100, height=700)
 
     def _detect_ma_path(self, drives=None):
         if drives is None:

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AniFlow</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="app">
+  <div id="toolbar">
+    <button id="btn-run" class="tb-btn tb-run" onclick="api('startSequence')">▶ 一键运行</button>
+    <button id="btn-stop" class="tb-btn tb-stop" onclick="api('stopSequence')" disabled>■ 停止</button>
+    <button id="btn-config" class="tb-btn tb-config" onclick="openConfig()">⚙ 配置</button>
+    <span id="seq-status"></span>
+    <div id="tb-right">
+      <span id="ver-label">v1.1.0</span>
+      <button id="btn-update" class="tb-btn tb-update" onclick="checkUpdate()">检查更新</button>
+    </div>
+  </div>
+  <div id="main">
+    <div id="sidebar">
+      <div class="card">
+        <div class="card-header">OneDragon <span class="card-sub">绝区零</span></div>
+        <div class="card-body">
+          <div class="card-row"><span id="od-indicator" class="indicator idle">●</span><span id="od-status" class="status-text idle">就绪</span></div>
+          <div class="card-btns">
+            <button class="card-btn card-start" onclick="api('startGame',['zenless_zone_zero'])">打开</button>
+            <button class="card-btn card-stop" onclick="api('stopGame',['zenless_zone_zero'])" disabled>关闭</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">MaaEnd <span class="card-sub">终末地</span></div>
+        <div class="card-body">
+          <div class="card-row"><span id="ma-indicator" class="indicator idle">●</span><span id="ma-status" class="status-text idle">就绪</span></div>
+          <div class="card-btns">
+            <button class="card-btn card-start" onclick="api('startGame',['endfield'])">打开</button>
+            <button class="card-btn card-stop" onclick="api('stopGame',['endfield'])" disabled>关闭</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-btn card-start" onclick="startAll()">全部打开</button>
+        <button class="card-btn card-stop" onclick="stopAll()" disabled>全部关闭</button>
+      </div>
+    </div>
+    <div id="log-area">
+      <div id="log-header">
+        <span>📋 日志</span>
+        <div id="log-header-right">
+          <button class="log-btn" onclick="clearLog()">清空</button>
+        </div>
+      </div>
+      <div id="log-content"></div>
+    </div>
+  </div>
+</div>
+
+<div id="config-overlay" class="overlay" style="display:none" onclick="if(event.target===this)closeConfig()">
+<div class="dialog">
+  <div class="dialog-header">配置</div>
+  <div class="dialog-tabs">
+    <button class="tab-btn active" data-tab="tab-paths" onclick="switchTab(this)">工具路径</button>
+    <button class="tab-btn" data-tab="tab-sequence" onclick="switchTab(this)">执行顺序</button>
+    <button class="tab-btn" data-tab="tab-system" onclick="switchTab(this)">系统配置</button>
+  </div>
+  <div class="dialog-body">
+    <div id="tab-paths" class="tab-content active">
+      <div class="tab-title">工具路径设置</div>
+      <div class="tool-group">
+        <div class="tool-group-title">OneDragon（绝区零）</div>
+        <div class="field-row"><label class="field-label">脚本路径</label><input id="cfg-od-path" class="field-input" type="text"></div>
+        <div class="field-row"><label class="field-label">Python 路径</label><input id="cfg-od-python" class="field-input" type="text"></div>
+      </div>
+      <div class="tool-group">
+        <div class="tool-group-title">MaaEnd（终末地）</div>
+        <div class="field-row"><label class="field-label">程序路径</label><input id="cfg-ma-path" class="field-input" type="text"></div>
+      </div>
+    </div>
+    <div id="tab-sequence" class="tab-content">
+      <div class="tab-title">执行顺序配置</div>
+      <div id="seq-list"></div>
+    </div>
+    <div id="tab-system" class="tab-content">
+      <div class="tab-title">执行完成后</div>
+      <div id="post-action-group">
+        <label class="radio-row"><input type="radio" name="post_action" value="none"> 不执行任何操作</label>
+        <label class="radio-row"><input type="radio" name="post_action" value="close_game"> 关闭游戏</label>
+        <label class="radio-row"><input type="radio" name="post_action" value="shutdown"> 关机</label>
+      </div>
+    </div>
+  </div>
+  <div class="dialog-footer">
+    <button class="dlg-btn dlg-cancel" onclick="closeConfig()">取消</button>
+    <button class="dlg-btn dlg-ok" onclick="saveConfig()">保存</button>
+  </div>
+</div></div>
+<script src="app.js"></script>
+</body></html>

@@ -1155,6 +1155,11 @@ class MainWindow(QMainWindow):
         self.game_manager.log_message.connect(self.add_log)
         self.game_manager.tool_output.connect(self._on_tool_output)
         self._init_log_file()
+
+        self._setup_ui()
+        self._setup_background()
+        self._apply_style()
+
         self.add_log(f'AniFlow v{VERSION} 启动', 'INFO')
         self.add_log(f'数据目录: {_app_dir()}', 'INFO')
         self.add_log(f'配置目录: {os.path.join(_app_dir(), "config")}', 'INFO')
@@ -1164,10 +1169,6 @@ class MainWindow(QMainWindow):
         self.add_log(f'OneDragon 路径: {od_path or "未配置"}', 'INFO')
         self.add_log(f'MaaEnd 路径: {me_path or "未配置"}', 'INFO')
         self.add_log(f'执行顺序: {settings.get("sequence", [])}', 'INFO')
-
-        self._setup_ui()
-        self._setup_background()
-        self._apply_style()
 
     # ---------- background ----------
     def _setup_background(self):

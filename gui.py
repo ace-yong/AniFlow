@@ -961,7 +961,7 @@ class _ToolsTab(QWidget):
 
     def _download_onedragon(self, btn):
         self._run_download(btn, 'OneDragon',
-            'git clone https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon.git',
+            'git clone https://gitee.com/OneDragon-Anything/ZenlessZoneZero-OneDragon.git',
             self._after_od_download)
 
     def _download_maaend(self, btn):

@@ -1682,6 +1682,9 @@ def _log_exception(exc_type, exc_value, exc_traceback):
         f.write(f'Executable: {sys.executable if getattr(sys, "frozen", False) else __file__}\n')
         f.write(f'CWD: {os.getcwd()}\n')
         f.write(f'_app_dir: {_app_dir()}\n\n')
+        import platform
+        f.write(f'OS: {platform.system()} {platform.release()}\n')
+        f.write(f'Python: {sys.version}\n\n')
         f.write(msg)
     print(f'程序崩溃，日志已保存: {log_path}')
     sys.exit(1)
@@ -1704,6 +1707,9 @@ def main():
         f.write(f'CWD: {os.getcwd()}\n')
         f.write(f'_app_dir: {_app_dir()}\n')
         f.write(f'Config dir: {os.path.join(_app_dir(), "config")}\n')
+        import platform
+        f.write(f'OS: {platform.system()} {platform.release()} {platform.version()}\n')
+        f.write(f'Python: {sys.version}\n')
     try:
         cfg_dir = os.path.join(_app_dir(), 'config')
         if not os.path.exists(cfg_dir):

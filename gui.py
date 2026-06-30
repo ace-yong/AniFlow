@@ -1658,6 +1658,18 @@ def main():
         if not os.path.exists(cfg_dir):
             os.makedirs(cfg_dir)
         
+        import PyQt5.QtCore
+        qt_plugin_path = os.path.join(os.path.dirname(PyQt5.QtCore.__file__), 'Qt5', 'plugins', 'platforms')
+        if os.path.isdir(qt_plugin_path):
+            os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = qt_plugin_path
+        elif getattr(sys, 'frozen', False):
+            # PyInstaller onefile: plugins are in _MEIPASS/PyQt5/Qt5/plugins
+            meipass = getattr(sys, '_MEIPASS', '')
+            if meipass:
+                p = os.path.join(meipass, 'PyQt5', 'Qt5', 'plugins', 'platforms')
+                if os.path.isdir(p):
+                    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = p
+        
         print("正在启动GUI...")
         
         app = QApplication(sys.argv)

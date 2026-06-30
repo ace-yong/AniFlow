@@ -329,7 +329,6 @@ class Api:
 
 
 if __name__ == '__main__':
-    _ensure_admin()
     api = Api()
     _script_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
     html = os.path.join(_script_dir, 'static', 'index.html')

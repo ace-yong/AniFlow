@@ -34,4 +34,7 @@ o.txt
 err.txt
 out.txt
 
+# Scripts
+scripts/
+
 # IDE

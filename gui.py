@@ -1067,6 +1067,10 @@ class _ToolsTab(QWidget):
                 self.od_python.setText(p)
                 break
 
+    def _after_ma_download(self, target):
+        """MaaEnd 下载完成后的回调（下载逻辑已在 _run_download 中处理，此处仅作标识）"""
+        pass
+
     def save(self, config_manager):
         config_manager.set_tool_settings('onedragon', {
             'path': self.od_path.text(),

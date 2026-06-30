@@ -10,8 +10,8 @@
 <div id="app">
   <!-- Toolbar -->
   <div id="toolbar">
-    <button id="btn-run" class="tb-btn tb-run" onclick="api.startSequence()">▶ 一键运行</button>
-    <button id="btn-stop" class="tb-btn tb-stop" onclick="api.stopSequence()" disabled>■ 停止</button>
+    <button id="btn-run" class="tb-btn tb-run" onclick="api('startSequence')">▶ 一键运行</button>
+    <button id="btn-stop" class="tb-btn tb-stop" onclick="api('stopSequence')" disabled>■ 停止</button>
     <button id="btn-config" class="tb-btn tb-config" onclick="openConfig()">⚙ 配置</button>
     <span id="seq-status"></span>
     <div id="tb-right">
@@ -29,8 +29,8 @@
         <div class="card-body">
           <div class="card-row"><span id="od-indicator" class="indicator idle">●</span><span id="od-status" class="status-text idle">就绪</span></div>
           <div class="card-btns">
-            <button id="od-start" class="card-btn card-start" onclick="api.startGame('zenless_zone_zero')">打开</button>
-            <button id="od-stop" class="card-btn card-stop" onclick="api.stopGame('zenless_zone_zero')" disabled>关闭</button>
+            <button id="od-start" class="card-btn card-start" onclick="api('startGame',['zenless_zone_zero'])">打开</button>
+            <button id="od-stop" class="card-btn card-stop" onclick="api('stopGame',['zenless_zone_zero'])" disabled>关闭</button>
           </div>
         </div>
       </div>
@@ -39,8 +39,8 @@
         <div class="card-body">
           <div class="card-row"><span id="ma-indicator" class="indicator idle">●</span><span id="ma-status" class="status-text idle">就绪</span></div>
           <div class="card-btns">
-            <button id="ma-start" class="card-btn card-start" onclick="api.startGame('endfield')">打开</button>
-            <button id="ma-stop" class="card-btn card-stop" onclick="api.stopGame('endfield')" disabled>关闭</button>
+            <button id="ma-start" class="card-btn card-start" onclick="api('startGame',['endfield'])">打开</button>
+            <button id="ma-stop" class="card-btn card-stop" onclick="api('stopGame',['endfield'])" disabled>关闭</button>
           </div>
         </div>
       </div>

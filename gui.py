@@ -332,68 +332,54 @@ if __name__ == '__main__':
     import ctypes
     ctypes.windll.user32.MessageBoxW(0, 'AniFlow 正在启动...', 'AniFlow', 0x40)
     api = Api()
-    _script_dir = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
-    html = os.path.join(_script_dir, 'static', 'index.html')
-    if not os.path.isfile(html):
-        html = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'index.html')
-    import webview
-    try:
-        webview.create_window('AniFlow v' + VERSION, html, js_api=api, width=1100, height=700)
-    except Exception as e:
-        ctypes.windll.user32.MessageBoxW(0, '启动失败: {}'.format(e), 'AniFlow Error', 0x10)
 
-    def _detect_ma_path(self, drives=None):
-        if drives is None:
-            drives = ['{}:\\'.format(chr(d)) for d in range(ord('C'), ord('Z') + 1) if os.path.exists('{}:\\'.format(chr(d)))]
-        roots = list(drives) + [os.path.expanduser('~')]
-        return self._search_deep(roots, {'MaaEnd.exe'}, 2)
+    import http.server, socketserver, webbrowser, json as json_mod
 
-    def checkUpdate(self):
-        api_url = 'https://api.github.com/repos/ace-yong/AniFlow/releases/latest'
-        try:
-            req = urllib.request.Request(api_url, headers={'User-Agent': 'AniFlow/1.0', 'Accept': 'application/vnd.github.v3+json'})
-            resp = urllib.request.urlopen(req, timeout=15)
-            data = json.loads(resp.read().decode())
-            tag = data.get('tag_name', '').lstrip('v')
-            return json.dumps({'latest': tag, 'current': VERSION, 'notes': data.get('body', ''), 'url': data.get('html_url', '')})
-        except Exception as e:
-            return json.dumps({'latest': VERSION, 'current': VERSION, 'notes': '', 'url': '', 'error': str(e)})
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def do_GET(self):
+            if self.path.startswith('/api/'):
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                method = self.path[5:].split('?')[0]
+                try:
+                    fn = getattr(api, method)
+                    result = fn()
+                    self.wfile.write(json_mod.dumps(result).encode())
+                except Exception as e:
+                    self.wfile.write(json_mod.dumps({'error': str(e)}).encode())
+                return
+            return super().do_GET()
 
-    def downloadUpdate(self):
-        import webview
-        api_url = 'https://api.github.com/repos/ace-yong/AniFlow/releases/latest'
-        try:
-            req = urllib.request.Request(api_url, headers={'User-Agent': 'AniFlow/1.0'})
-            data = json.loads(urllib.request.urlopen(req, timeout=15).read())
-            dl_url = ''
-            for a in data.get('assets', []):
-                if a['name'].endswith('.exe'):
-                    dl_url = a['browser_download_url']
-                    break
-            if not dl_url:
-                raise Exception('未找到可下载文件')
-            exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
-            tmp = os.path.join(exe_dir, 'AniFlow_update.exe')
-            urllib.request.urlretrieve(dl_url, tmp)
-            new_exe = os.path.join(exe_dir, 'AniFlow.exe')
-            updater = os.path.join(exe_dir, 'update.bat')
-            with open(updater, 'w', encoding='utf-8') as f:
-                f.write('@echo off\nchcp 65001 >nul\n:wait\n')
-                f.write('tasklist /FI "IMAGENAME eq AniFlow.exe" 2>nul | find /I /N "AniFlow.exe" >nul\n')
-                f.write('if %errorlevel% equ 0 (timeout /t 1 /nobreak >nul & goto wait)\n')
-                f.write('move /Y "{}" "{}" >nul\n'.format(tmp, new_exe))
-                f.write('start "" "{}"\ndel "%~f0"\n'.format(new_exe))
-            os.startfile(updater)
-            sys.exit(0)
-        except Exception as e:
-            return str(e)
+        def do_POST(self):
+            if self.path.startswith('/api/'):
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length).decode() if length else '{}'
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                method = self.path[5:].split('?')[0]
+                try:
+                    args = json_mod.loads(body) if body else []
+                    fn = getattr(api, method)
+                    result = fn(*args) if isinstance(args, list) else fn(args)
+                    self.wfile.write(json_mod.dumps(result).encode())
+                except Exception as e:
+                    self.wfile.write(json_mod.dumps({'error': str(e)}).encode())
+                return
+            self.send_error(404)
 
-    def browseFile(self, filter_str):
-        import webview
-        try:
-            files = webview.windows[0].create_file_dialog(webview.OPEN_DIALOG, file_types=[filter_str])
-            if files:
-                return files[0]
-        except Exception:
+        def log_message(self, format, *args):
             pass
-        return ''
+
+    static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    os.chdir(static_dir)
+    server = socketserver.TCPServer(('127.0.0.1', 0), Handler)
+    port = server.server_address[1]
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+
+    webbrowser.open('http://127.0.0.1:{}/index.html'.format(port))
+    ctypes.windll.user32.MessageBoxW(0, 'AniFlow 已启动\n浏览器窗口已打开，完成后关闭此窗口退出。', 'AniFlow', 0x40)
+    server.shutdown()

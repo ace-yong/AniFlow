@@ -2,7 +2,7 @@
 
 绝区零 (Zenless Zone Zero) + 终末地 (Endfield) 自动化调度工具。
 
-整合 [OneDragon](https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon)（绝区零）和 [MaaEnd](https://github.com/MaaXYZ/MaaEnd)（终末地），提供统一的可视化管理界面和一键运行管道。
+整合 [OneDragon](https://one-dragon.com/zzz/zh/feat_one_dragon/onedragon.html)（绝区零）和 [MaaEnd](https://github.com/MaaXYZ/MaaEnd)（终末地），提供统一的可视化管理界面和一键运行管道。
 
 后续将集成更多游戏自动化工具，持续更新中。
 
@@ -82,7 +82,7 @@ AniFlow/
 
 > 使用前请确保 OneDragon 和 MaaEnd 已打开并配置好各自的功能，AniFlow 负责调度启动它们。
 >
-> 参考官方文档：[OneDragon](https://gitee.com/one-dragon/ZenlessZoneZero-OneDragon) | [MaaEnd](https://github.com/MaaXYZ/MaaEnd)
+> 参考官方文档：[OneDragon](https://one-dragon.com/zzz/zh/feat_one_dragon/onedragon.html) | [MaaEnd](https://github.com/MaaXYZ/MaaEnd)
 
 ### 一键运行
 

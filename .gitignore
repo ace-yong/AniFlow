@@ -26,3 +26,5 @@ Thumbs.db
 
 # game-sky runtime
 game-sky/
+stderr.txt
+stdout.txt

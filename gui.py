@@ -15,6 +15,25 @@ def _app_dir():
         return os.path.join(os.path.dirname(sys.executable), 'AniFlow')
     return os.path.dirname(os.path.abspath(__file__))
 
+
+def _migrate_config():
+    """将旧版本配置迁移到当前数据目录（处理项目改名后的路径变化）"""
+    dst = os.path.join(_app_dir(), 'config')
+    if os.path.exists(os.path.join(dst, 'settings.json')):
+        return  # 已有新配置
+    for old_name in ['game-sky', 'gamesky']:
+        src = os.path.join(os.path.dirname(_app_dir()), old_name, 'config', 'settings.json')
+        if os.path.exists(src):
+            os.makedirs(dst, exist_ok=True)
+            import shutil
+            shutil.copy2(src, os.path.join(dst, 'settings.json'))
+            # 也迁移 accounts 和 task_definitions
+            for f in ['accounts.json', 'task_definitions.json']:
+                s = os.path.join(os.path.dirname(src), f)
+                if os.path.exists(s):
+                    shutil.copy2(s, os.path.join(dst, f))
+            return
+
 import threading
 from datetime import datetime
 from PyQt5.QtWidgets import (
@@ -998,6 +1017,7 @@ class MainWindow(QMainWindow):
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 
+        _migrate_config()
         self.config_manager = ConfigManager(os.path.join(_app_dir(), 'config'))
         self.game_manager = GameProcessManager(self.config_manager)
         self.game_manager.status_changed.connect(self._on_game_status)

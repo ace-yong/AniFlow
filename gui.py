@@ -779,6 +779,23 @@ class _ToolsTab(QWidget):
             self._last_row = row
             return lbl, ed, btn
 
+        from PyQt5.QtWidgets import QComboBox
+
+        def make_drive_combo():
+            cb = QComboBox()
+            cb.setFont(QFont('Segoe UI', 10))
+            cb.setStyleSheet("QComboBox { padding: 3px 8px; border: 1px solid #ccc; border-radius: 4px; min-width: 80px; } QComboBox:hover { border-color: rgb(64,158,255); }")
+            cb.addItem('全部盘符')
+            for d in range(ord('C'), ord('Z') + 1):
+                letter = chr(d)
+                if os.path.exists(f'{letter}:\\'):
+                    cb.addItem(f'{letter}:\\')
+            return cb
+
+        def get_drives(cb):
+            t = cb.currentText()
+            return None if t == '全部盘符' else [t.rstrip('\\') + '\\']
+
         # OneDragon
         od_group = QGroupBox('OneDragon（绝区零）')
         od_group.setFont(QFont('Segoe UI', 12, QFont.Bold))
@@ -789,14 +806,25 @@ class _ToolsTab(QWidget):
         od_layout = QVBoxLayout(od_group)
         od_layout.setSpacing(8)
 
+        scan_od_row = QHBoxLayout()
+        od_drive_cb = make_drive_combo()
+        scan_od_row.addWidget(od_drive_cb)
+        scan_od_btn = QPushButton('扫描')
+        scan_od_btn.setFont(QFont('Segoe UI', 11))
+        scan_od_btn.setStyleSheet("""
+            QPushButton { background: rgb(64,158,255); color: white; padding: 4px 16px; border: none; border-radius: 4px; }
+            QPushButton:hover { background: rgb(96,184,255); }
+        """)
+        scan_od_btn.clicked.connect(lambda: self._scan_od(od_drive_cb))
+        scan_od_row.addWidget(scan_od_btn)
+        scan_od_row.addStretch()
+        od_layout.addLayout(scan_od_row)
+
         def _detect_od_path():
-            return self._detect_od_path(None)
+            return self._detect_od_path(get_drives(od_drive_cb))
 
         def _detect_od_python():
-            return self._detect_od_python(None)
-
-        def _detect_ma_path():
-            return self._detect_ma_path(None)
+            return self._detect_od_python(get_drives(od_drive_cb))
 
         lbl, self.od_path, browse_od = make_row('脚本路径', od.get('path', ''), _detect_od_path)
         browse_od.clicked.connect(lambda: self._browse_file(self.od_path, 'Python 文件 (*.py)'))
@@ -823,6 +851,20 @@ class _ToolsTab(QWidget):
         ma_layout = QVBoxLayout(ma_group)
         ma_layout.setSpacing(8)
 
+        scan_ma_row = QHBoxLayout()
+        ma_drive_cb = make_drive_combo()
+        scan_ma_row.addWidget(ma_drive_cb)
+        scan_ma_btn = QPushButton('扫描')
+        scan_ma_btn.setFont(QFont('Segoe UI', 11))
+        scan_ma_btn.setStyleSheet(scan_od_btn.styleSheet())
+        scan_ma_btn.clicked.connect(lambda: self._scan_ma(ma_drive_cb))
+        scan_ma_row.addWidget(scan_ma_btn)
+        scan_ma_row.addStretch()
+        ma_layout.addLayout(scan_ma_row)
+
+        def _detect_ma_path():
+            return self._detect_ma_path(get_drives(ma_drive_cb))
+
         lbl, self.ma_path, browse_ma = make_row('程序路径', ma.get('path', ''), _detect_ma_path)
         browse_ma.clicked.connect(lambda: self._browse_file(self.ma_path, '可执行文件 (*.exe)'))
         ma_layout.addLayout(self._last_row)
@@ -847,6 +889,31 @@ class _ToolsTab(QWidget):
         path, _ = QFileDialog.getOpenFileName(self, '选择文件', '', filter_str)
         if path:
             edit.setText(path)
+
+    def _scan_od(self, drive_cb):
+        self._status.setText('正在扫描 OneDragon...')
+        QApplication.processEvents()
+        drives = None if drive_cb.currentText() == '全部盘符' else [drive_cb.currentText().rstrip('\\') + '\\']
+        od_path = self._detect_od_path(drives)
+        if od_path:
+            self.od_path.setText(od_path)
+            py_path = self._detect_od_python(drives)
+            if py_path:
+                self.od_python.setText(py_path)
+            self._status.setText('已找到 OneDragon')
+        else:
+            self._status.setText('未扫描到 OneDragon')
+
+    def _scan_ma(self, drive_cb):
+        self._status.setText('正在扫描 MaaEnd...')
+        QApplication.processEvents()
+        drives = None if drive_cb.currentText() == '全部盘符' else [drive_cb.currentText().rstrip('\\') + '\\']
+        ma_path = self._detect_ma_path(drives)
+        if ma_path:
+            self.ma_path.setText(ma_path)
+            self._status.setText('已找到 MaaEnd')
+        else:
+            self._status.setText('未扫描到 MaaEnd')
 
     @staticmethod
     def _search_deep(roots, targets, max_depth=4):

@@ -8,6 +8,12 @@ import sys
 import os
 import json
 import time
+import threading
+import urllib.request
+import webbrowser
+import shutil
+
+VERSION = "1.0.0"
 
 def _app_dir():
     """返回 AniFlow 数据目录（config、logs、tools 等都在此目录下）"""
@@ -32,7 +38,6 @@ def _migrate_config():
     for src in candidates:
         if os.path.exists(src):
             os.makedirs(dst, exist_ok=True)
-            import shutil
             shutil.copy2(src, os.path.join(dst, 'settings.json'))
             for f in ['accounts.json', 'task_definitions.json']:
                 s = os.path.join(os.path.dirname(src), f)
@@ -428,6 +433,121 @@ class AccountConfigDialog(QDialog):
             'enabled': self.enabled_checkbox.isChecked(),
             'priority': self.priority_spin.value()
         }
+
+
+class UpdateDialog(QDialog):
+    def __init__(self, parent=None, current_version='', latest_version='', release_url='', notes=''):
+        super().__init__(parent)
+        self.setWindowTitle('检查更新')
+        self.setFixedSize(420, 260)
+        self._release_url = release_url
+        self._download_url = ''
+
+        root = QVBoxLayout(self)
+        root.setSpacing(12)
+
+        title = QLabel('检查更新')
+        title.setStyleSheet('font-size: 16px; font-weight: bold; color: #333;')
+        root.addWidget(title)
+
+        info = QLabel()
+        if latest_version and latest_version != current_version:
+            text = f'当前版本：<span style="color:#999">v{current_version}</span><br>最新版本：<span style="color:#52c41a;font-weight:bold">v{latest_version}</span>'
+            info.setText(text)
+            info.setStyleSheet('font-size: 13px; padding: 8px 0;')
+            root.addWidget(info)
+
+            notes_label = QLabel('更新内容：')
+            notes_label.setStyleSheet('font-size: 12px; color: #666;')
+            root.addWidget(notes_label)
+
+            notes_text = QTextEdit()
+            notes_text.setReadOnly(True)
+            notes_text.setPlainText(notes)
+            notes_text.setMaximumHeight(80)
+            notes_text.setStyleSheet('font-size: 11px; color: #555; border: 1px solid #ddd; border-radius: 4px; padding: 4px;')
+            root.addWidget(notes_text)
+
+            btn_layout = QHBoxLayout()
+            btn_layout.addStretch()
+            self._update_btn = QPushButton('立即更新')
+            self._update_btn.setStyleSheet("""
+                QPushButton { background-color: rgba(64, 158, 255, 200); color: white; padding: 8px 24px; border: none; border-radius: 4px; font-size: 13px; }
+                QPushButton:hover { background-color: rgba(64, 158, 255, 240); }
+            """)
+            self._update_btn.clicked.connect(self._start_update)
+            btn_layout.addWidget(self._update_btn)
+
+            close_btn = QPushButton('取消')
+            close_btn.setStyleSheet("""
+                QPushButton { background: transparent; color: #666; padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+                QPushButton:hover { border-color: #999; }
+            """)
+            close_btn.clicked.connect(self.close)
+            btn_layout.addWidget(close_btn)
+            root.addLayout(btn_layout)
+        else:
+            text = f'当前版本：<span style="color:#999">v{current_version}</span><br>最新版本：<span style="color:#52c41a;font-weight:bold">v{current_version}</span>'
+            info.setText(text)
+            info.setStyleSheet('font-size: 13px; padding: 12px 0;')
+            root.addWidget(info)
+
+            ok_msg = QLabel('✓ 已是最新版本')
+            ok_msg.setStyleSheet('font-size: 14px; color: #52c41a; font-weight: bold; padding: 8px 0;')
+            root.addWidget(ok_msg)
+
+            btn_layout = QHBoxLayout()
+            btn_layout.addStretch()
+            close_btn = QPushButton('确定')
+            close_btn.setStyleSheet("""
+                QPushButton { background-color: rgba(64, 158, 255, 200); color: white; padding: 8px 24px; border: none; border-radius: 4px; font-size: 13px; }
+                QPushButton:hover { background-color: rgba(64, 158, 255, 240); }
+            """)
+            close_btn.clicked.connect(self.close)
+            btn_layout.addWidget(close_btn)
+            root.addLayout(btn_layout)
+
+    def _start_update(self):
+        self._update_btn.setEnabled(False)
+        self._update_btn.setText('下载中...')
+        QApplication.processEvents()
+        threading.Thread(target=self._do_download, daemon=True).start()
+
+    def _do_download(self):
+        api_url = 'https://api.github.com/repos/ace-yong/AniFlow/releases/latest'
+        try:
+            req = urllib.request.Request(api_url, headers={'User-Agent': 'AniFlow/1.0', 'Accept': 'application/vnd.github.v3+json'})
+            resp = urllib.request.urlopen(req, timeout=30)
+            data = json.loads(resp.read().decode('utf-8'))
+            for asset in data.get('assets', []):
+                if asset.get('name', '').endswith('.exe'):
+                    self._download_url = asset['browser_download_url']
+                    break
+            if not self._download_url:
+                return
+            exe_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+            tmp_path = os.path.join(exe_dir, 'AniFlow_update.exe')
+            urllib.request.urlretrieve(self._download_url, tmp_path)
+            new_exe = os.path.join(exe_dir, 'AniFlow.exe')
+            updater = os.path.join(exe_dir, 'update.bat')
+            with open(updater, 'w', encoding='utf-8') as f:
+                f.write(f'''@echo off
+chcp 65001 >nul
+:wait
+tasklist /FI "IMAGENAME eq AniFlow.exe" 2>nul | find /I /N "AniFlow.exe" >nul
+if %errorlevel% equ 0 (
+    timeout /t 1 /nobreak >nul
+    goto wait
+)
+move /Y "{tmp_path}" "{new_exe}" >nul
+start "" "{new_exe}"
+del "%~f0"
+''')
+            os.startfile(updater)
+            sys.exit(0)
+        except Exception as e:
+            self._update_btn.setEnabled(True)
+            self._update_btn.setText('下载失败')
 
 
 # 配置对话框（选项卡：顺序执行 + 工具路径）
@@ -1129,6 +1249,20 @@ class MainWindow(QMainWindow):
 
         toolbar.addStretch()
 
+        self._version_label = QLabel(f'v{VERSION}')
+        self._version_label.setStyleSheet('color: #999; font-size: 11px; padding: 0 6px;')
+        toolbar.addWidget(self._version_label)
+
+        self._check_update_btn = QPushButton('检查更新')
+        self._check_update_btn.setFont(QFont('Segoe UI', 10))
+        self._check_update_btn.setStyleSheet("""
+            QPushButton { background: transparent; color: #888; padding: 4px 10px; border: 1px solid rgba(200,200,200,150); border-radius: 4px; font-size: 11px; }
+            QPushButton:hover { border-color: rgba(64, 158, 255, 200); color: rgb(64, 158, 255); }
+            QPushButton:disabled { color: #ccc; }
+        """)
+        self._check_update_btn.clicked.connect(self._check_update)
+        toolbar.addWidget(self._check_update_btn)
+
         root.addLayout(toolbar)
 
         # === 主区域: 左侧列表 + 右侧日志 ===
@@ -1320,6 +1454,35 @@ class MainWindow(QMainWindow):
 
     def _open_seq_config(self):
         dialog = ConfigDialog(self, self.config_manager)
+        dialog.exec_()
+
+    def _check_update(self):
+        self._check_update_btn.setEnabled(False)
+        self._check_update_btn.setText('检查中...')
+        QApplication.processEvents()
+        threading.Thread(target=self._do_check_update, daemon=True).start()
+
+    def _do_check_update(self):
+        api_url = 'https://api.github.com/repos/ace-yong/AniFlow/releases/latest'
+        try:
+            req = urllib.request.Request(api_url, headers={'User-Agent': 'AniFlow/1.0', 'Accept': 'application/vnd.github.v3+json'})
+            resp = urllib.request.urlopen(req, timeout=15)
+            data = json.loads(resp.read().decode('utf-8'))
+            latest_tag = data.get('tag_name', '').lstrip('v')
+            curr = VERSION
+            notes = data.get('body', '')
+            release_url = data.get('html_url', '')
+            curr_tuple = tuple(int(x) for x in curr.split('.'))
+            latest_tuple = tuple(int(x) for x in latest_tag.split('.'))
+            self._version_label.setText(f'v{curr}')
+        except Exception:
+            latest_tag = VERSION
+            notes = ''
+            release_url = ''
+        finally:
+            self._check_update_btn.setEnabled(True)
+            self._check_update_btn.setText('检查更新')
+        dialog = UpdateDialog(self, current_version=VERSION, latest_version=latest_tag, release_url=release_url, notes=notes)
         dialog.exec_()
 
     # ---------- game control ----------

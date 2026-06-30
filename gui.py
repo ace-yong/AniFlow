@@ -820,17 +820,11 @@ class _ToolsTab(QWidget):
         scan_od_row.addStretch()
         od_layout.addLayout(scan_od_row)
 
-        def _detect_od_path():
-            return self._detect_od_path(get_drives(od_drive_cb))
-
-        def _detect_od_python():
-            return self._detect_od_python(get_drives(od_drive_cb))
-
-        lbl, self.od_path, browse_od = make_row('脚本路径', od.get('path', ''), _detect_od_path)
+        lbl, self.od_path, browse_od = make_row('脚本路径', od.get('path', ''))
         browse_od.clicked.connect(lambda: self._browse_file(self.od_path, 'Python 文件 (*.py)'))
         od_layout.addLayout(self._last_row)
 
-        lbl, self.od_python, browse_py = make_row('Python 路径', od.get('python_path', ''), _detect_od_python)
+        lbl, self.od_python, browse_py = make_row('Python 路径', od.get('python_path', ''))
         browse_py.clicked.connect(lambda: self._browse_file(self.od_python, '可执行文件 (*.exe;*.bat)'))
         od_layout.addLayout(self._last_row)
 
@@ -862,10 +856,7 @@ class _ToolsTab(QWidget):
         scan_ma_row.addStretch()
         ma_layout.addLayout(scan_ma_row)
 
-        def _detect_ma_path():
-            return self._detect_ma_path(get_drives(ma_drive_cb))
-
-        lbl, self.ma_path, browse_ma = make_row('程序路径', ma.get('path', ''), _detect_ma_path)
+        lbl, self.ma_path, browse_ma = make_row('程序路径', ma.get('path', ''))
         browse_ma.clicked.connect(lambda: self._browse_file(self.ma_path, '可执行文件 (*.exe)'))
         ma_layout.addLayout(self._last_row)
 
@@ -916,7 +907,7 @@ class _ToolsTab(QWidget):
             self._status.setText('未扫描到 MaaEnd')
 
     @staticmethod
-    def _search_deep(roots, targets, max_depth=4):
+    def _search_deep(roots, targets, max_depth=2):
         """在 roots 目录列表中递归搜索最多 max_depth 层，返回第一个匹配 target 文件的路径"""
         from collections import deque
         for root in roots:
@@ -951,7 +942,7 @@ class _ToolsTab(QWidget):
             q = deque([(root, 0)])
             while q:
                 dirpath, depth = q.popleft()
-                if depth > 4:
+                if depth > 2:
                     continue
                 try:
                     for name in os.listdir(dirpath):

@@ -12,6 +12,8 @@ import threading
 import urllib.request
 import webbrowser
 import shutil
+import traceback
+
 
 VERSION = "1.0.1"
 
@@ -1134,6 +1136,8 @@ class _SystemTab(QWidget):
 # 主窗口类
 class MainWindow(QMainWindow):
     """主窗口 - 游戏卡片布局，支持独立启动/停止"""
+    show_update = pyqtSignal(str, str, str, str)  # current, latest, release_url, notes
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle('AniFlow')
@@ -1147,9 +1151,19 @@ class MainWindow(QMainWindow):
         self.config_manager = ConfigManager(os.path.join(_app_dir(), 'config'))
         self.game_manager = GameProcessManager(self.config_manager)
         self.game_manager.status_changed.connect(self._on_game_status)
+        self.show_update.connect(self._show_update_dialog)
         self.game_manager.log_message.connect(self.add_log)
         self.game_manager.tool_output.connect(self._on_tool_output)
         self._init_log_file()
+        self.add_log(f'AniFlow v{VERSION} 启动', 'INFO')
+        self.add_log(f'数据目录: {_app_dir()}', 'INFO')
+        self.add_log(f'配置目录: {os.path.join(_app_dir(), "config")}', 'INFO')
+        settings = self.config_manager.settings
+        od_path = settings.get('onedragon', {}).get('path', '')
+        me_path = settings.get('maaend', {}).get('path', '')
+        self.add_log(f'OneDragon 路径: {od_path or "未配置"}', 'INFO')
+        self.add_log(f'MaaEnd 路径: {me_path or "未配置"}', 'INFO')
+        self.add_log(f'执行顺序: {settings.get("sequence", [])}', 'INFO')
 
         self._setup_ui()
         self._setup_background()
@@ -1472,9 +1486,6 @@ class MainWindow(QMainWindow):
             curr = VERSION
             notes = data.get('body', '')
             release_url = data.get('html_url', '')
-            curr_tuple = tuple(int(x) for x in curr.split('.'))
-            latest_tuple = tuple(int(x) for x in latest_tag.split('.'))
-            self._version_label.setText(f'v{curr}')
         except Exception:
             latest_tag = VERSION
             notes = ''
@@ -1482,7 +1493,10 @@ class MainWindow(QMainWindow):
         finally:
             self._check_update_btn.setEnabled(True)
             self._check_update_btn.setText('检查更新')
-        dialog = UpdateDialog(self, current_version=VERSION, latest_version=latest_tag, release_url=release_url, notes=notes)
+        self.show_update.emit(VERSION, latest_tag, release_url, notes)
+
+    def _show_update_dialog(self, current, latest, url, notes):
+        dialog = UpdateDialog(self, current_version=current, latest_version=latest, release_url=url, notes=notes)
         dialog.exec_()
 
     # ---------- game control ----------
@@ -1652,11 +1666,44 @@ def _ensure_admin():
     sys.exit(0)
 
 
+def _log_exception(exc_type, exc_value, exc_traceback):
+    """全局未捕获异常处理 - 写入日志文件"""
+    msg = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    log_dir = os.path.join(_app_dir(), 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, f'crash_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+    with open(log_path, 'w', encoding='utf-8') as f:
+        f.write('\ufeff')
+        f.write(f'[CRASH] {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
+        f.write(f'Version: {VERSION}\n')
+        f.write(f'Sys.argv: {sys.argv}\n')
+        f.write(f'Frozen: {getattr(sys, "frozen", False)}\n')
+        f.write(f'Executable: {sys.executable if getattr(sys, "frozen", False) else __file__}\n')
+        f.write(f'CWD: {os.getcwd()}\n')
+        f.write(f'_app_dir: {_app_dir()}\n\n')
+        f.write(msg)
+    print(f'程序崩溃，日志已保存: {log_path}')
+    sys.exit(1)
+
+
 def main():
     """主函数"""
+    sys.excepthook = _log_exception
+    threading.excepthook = lambda args: _log_exception(args.exc_type, args.exc_value, args.exc_traceback)
     _ensure_admin()
+    log_dir = os.path.join(_app_dir(), 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    startup_log = os.path.join(log_dir, f'startup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+    with open(startup_log, 'w', encoding='utf-8') as f:
+        f.write('\ufeff')
+        f.write(f'[STARTUP] {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
+        f.write(f'Version: {VERSION}\n')
+        f.write(f'Frozen: {getattr(sys, "frozen", False)}\n')
+        f.write(f'Executable: {sys.executable if getattr(sys, "frozen", False) else __file__}\n')
+        f.write(f'CWD: {os.getcwd()}\n')
+        f.write(f'_app_dir: {_app_dir()}\n')
+        f.write(f'Config dir: {os.path.join(_app_dir(), "config")}\n')
     try:
-        # 确保 config 目录存在
         cfg_dir = os.path.join(_app_dir(), 'config')
         if not os.path.exists(cfg_dir):
             os.makedirs(cfg_dir)
@@ -1675,7 +1722,6 @@ def main():
         sys.exit(app.exec_())
     except Exception as e:
         print(f"错误: {e}")
-        import traceback
         traceback.print_exc()
         input("按任意键退出...")
         sys.exit(1)

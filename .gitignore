@@ -26,5 +26,7 @@ Thumbs.db
 
 # AniFlow runtime
 AniFlow/
+stderr*.txt
+stdout*.txt
 stderr.txt
 stdout.txt

@@ -749,7 +749,7 @@ class _ToolsTab(QWidget):
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
-        def make_row(label_text, default_val, detect_cb=None):
+        def make_row(label_text, default_val):
             row = QHBoxLayout()
             lbl = QLabel(label_text)
             lbl.setFont(QFont('Segoe UI', 11))
@@ -760,24 +760,8 @@ class _ToolsTab(QWidget):
             ed.setFont(QFont('Consolas', 10))
             ed.setStyleSheet("padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: #fafafa;")
             row.addWidget(ed, 1)
-            if detect_cb:
-                detect = QPushButton('检测')
-                detect.setFont(QFont('Segoe UI', 10))
-                detect.setStyleSheet("""
-                    QPushButton { background: white; color: #333; padding: 4px 10px; border: 1px solid #d0d0d0; border-radius: 4px; }
-                    QPushButton:hover { border-color: rgb(64,158,255); color: rgb(64,158,255); }
-                """)
-                detect.clicked.connect(lambda checked, e=ed, cb=detect_cb: e.setText(cb() or ''))
-                row.addWidget(detect)
-            btn = QPushButton('浏览')
-            btn.setFont(QFont('Segoe UI', 10))
-            btn.setStyleSheet("""
-                QPushButton { background: white; color: #333; padding: 4px 12px; border: 1px solid #d0d0d0; border-radius: 4px; }
-                QPushButton:hover { border-color: rgb(64, 158, 255); color: rgb(64, 158, 255); }
-            """)
-            row.addWidget(btn)
             self._last_row = row
-            return lbl, ed, btn
+            return lbl, ed
 
         from PyQt5.QtWidgets import QComboBox
 
@@ -820,12 +804,10 @@ class _ToolsTab(QWidget):
         scan_od_row.addStretch()
         od_layout.addLayout(scan_od_row)
 
-        lbl, self.od_path, browse_od = make_row('脚本路径', od.get('path', ''))
-        browse_od.clicked.connect(lambda: self._browse_file(self.od_path, 'Python 文件 (*.py)'))
+        lbl, self.od_path = make_row('脚本路径', od.get('path', ''))
         od_layout.addLayout(self._last_row)
 
-        lbl, self.od_python, browse_py = make_row('Python 路径', od.get('python_path', ''))
-        browse_py.clicked.connect(lambda: self._browse_file(self.od_python, '可执行文件 (*.exe;*.bat)'))
+        lbl, self.od_python = make_row('Python 路径', od.get('python_path', ''))
         od_layout.addLayout(self._last_row)
 
         dl_od = QPushButton('📥 下载并安装 OneDragon (Gitee)')
@@ -856,8 +838,7 @@ class _ToolsTab(QWidget):
         scan_ma_row.addStretch()
         ma_layout.addLayout(scan_ma_row)
 
-        lbl, self.ma_path, browse_ma = make_row('程序路径', ma.get('path', ''))
-        browse_ma.clicked.connect(lambda: self._browse_file(self.ma_path, '可执行文件 (*.exe)'))
+        lbl, self.ma_path = make_row('程序路径', ma.get('path', ''))
         ma_layout.addLayout(self._last_row)
 
         dl_ma = QPushButton('📥 下载并安装 MaaEnd (GitHub)')

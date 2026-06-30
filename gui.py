@@ -994,7 +994,7 @@ class _ToolsTab(QWidget):
                     data = json.loads(resp.read().decode())
                     asset = None
                     for a in data.get('assets', []):
-                        if a['name'].endswith('.zip') and 'win' in a['name'].lower():
+                        if a['name'].endswith('.zip') and 'win' in a['name'].lower() and 'x86_64' in a['name'].lower():
                             asset = a
                             break
                     if not asset:

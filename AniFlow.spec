@@ -1,11 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import PyQt5
+
+p = os.path.dirname(PyQt5.__file__)
+plugin_files = []
+for root, dirs, files in os.walk(os.path.join(p, 'Qt5', 'plugins')):
+    for f in files:
+        full = os.path.join(root, f)
+        rel = os.path.relpath(full, p)
+        plugin_files.append((full, rel))
+
 a = Analysis(
     ['gui.py'],
     pathex=['.'],
     binaries=[],
-    datas=[ ('src', 'src'), ('static', 'static'), ('icon.ico', '.')],
-    hiddenimports=[],
+    datas=[ (src, dst) for src, dst, _ in Tree('src', prefix='src') ] + [('icon.ico', '.'), ('wallpaper_source.jpg', '.')] + plugin_files,
+    hiddenimports=['PyQt5.sip'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -27,7 +38,7 @@ exe = EXE(
     strip=False,
     upx=True,
     upx_exclude=['*.dll'],
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

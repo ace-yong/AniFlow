@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AniFlow</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <button id="btn-run" class="tb-btn tb-run" onclick="api.startSequence()">▶ 一键运行</button>
+    <button id="btn-stop" class="tb-btn tb-stop" onclick="api.stopSequence()" disabled>■ 停止</button>
+    <button id="btn-config" class="tb-btn tb-config" onclick="openConfig()">⚙ 配置</button>
+    <span id="seq-status"></span>
+    <div id="tb-right">
+      <span id="ver-label">v1.1.0</span>
+      <button id="btn-update" class="tb-btn tb-update" onclick="checkUpdate()">检查更新</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="card" id="card-od">
+        <div class="card-header">OneDragon <span class="card-sub">绝区零</span></div>
+        <div class="card-body">
+          <div class="card-row"><span id="od-indicator" class="indicator idle">●</span><span id="od-status" class="status-text idle">就绪</span></div>
+          <div class="card-btns">
+            <button id="od-start" class="card-btn card-start" onclick="api.startGame('zenless_zone_zero')">打开</button>
+            <button id="od-stop" class="card-btn card-stop" onclick="api.stopGame('zenless_zone_zero')" disabled>关闭</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="card-ma">
+        <div class="card-header">MaaEnd <span class="card-sub">终末地</span></div>
+        <div class="card-body">
+          <div class="card-row"><span id="ma-indicator" class="indicator idle">●</span><span id="ma-status" class="status-text idle">就绪</span></div>
+          <div class="card-btns">
+            <button id="ma-start" class="card-btn card-start" onclick="api.startGame('endfield')">打开</button>
+            <button id="ma-stop" class="card-btn card-stop" onclick="api.stopGame('endfield')" disabled>关闭</button>
+          </div>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button id="btn-start-all" class="card-btn card-start" onclick="startAll()">全部打开</button>
+        <button id="btn-stop-all" class="card-btn card-stop" onclick="stopAll()" disabled>全部关闭</button>
+      </div>
+    </div>
+
+    <!-- Log area -->
+    <div id="log-area">
+      <div id="log-header">
+        <span>📋 日志</span>
+        <div id="log-header-right">
+          <button class="log-btn" onclick="openLogFolder()">📂 日志目录</button>
+          <button class="log-btn" onclick="clearLog()">清空</button>
+        </div>
+      </div>
+      <div id="log-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Config Dialog -->
+<div id="config-overlay" class="overlay" style="display:none" onclick="if(event.target===this)closeConfig()">
+<div id="config-dialog" class="dialog">
+  <div class="dialog-header">配置</div>
+  <div class="dialog-tabs">
+    <button class="tab-btn active" data-tab="tab-paths" onclick="switchTab(this)">工具路径</button>
+    <button class="tab-btn" data-tab="tab-sequence" onclick="switchTab(this)">执行顺序</button>
+    <button class="tab-btn" data-tab="tab-system" onclick="switchTab(this)">系统配置</button>
+  </div>
+  <div class="dialog-body">
+
+    <!-- Tab: Paths -->
+    <div id="tab-paths" class="tab-content active">
+      <div class="tab-title">工具路径设置</div>
+      <div class="tool-group">
+        <div class="tool-group-title">OneDragon（绝区零）</div>
+        <div class="scan-row">
+          <select id="od-drive" class="drive-select"><option value="">全部盘符</option></select>
+          <button class="scan-btn" onclick="scanTool('onedragon')">扫描</button>
+        </div>
+        <div class="field-row"><label class="field-label">脚本路径</label><input id="cfg-od-path" class="field-input" type="text"></div>
+        <div class="field-row"><label class="field-label">Python 路径</label><input id="cfg-od-python" class="field-input" type="text"></div>
+        <button class="dl-btn dl-od" onclick="downloadTool('onedragon')">📥 下载并安装 OneDragon (Gitee)</button>
+      </div>
+      <div class="tool-group">
+        <div class="tool-group-title">MaaEnd（终末地）</div>
+        <div class="scan-row">
+          <select id="ma-drive" class="drive-select"><option value="">全部盘符</option></select>
+          <button class="scan-btn" onclick="scanTool('maaend')">扫描</button>
+        </div>
+        <div class="field-row"><label class="field-label">程序路径</label><input id="cfg-ma-path" class="field-input" type="text"></div>
+        <button class="dl-btn dl-ma" onclick="downloadTool('maaend')">📥 下载并安装 MaaEnd (GitHub)</button>
+      </div>
+    </div>
+
+    <!-- Tab: Sequence -->
+    <div id="tab-sequence" class="tab-content">
+      <div class="tab-title">执行顺序配置</div>
+      <div id="seq-list"></div>
+    </div>
+
+    <!-- Tab: System -->
+    <div id="tab-system" class="tab-content">
+      <div class="tab-title">执行完成后</div>
+      <div id="post-action-group">
+        <label class="radio-row"><input type="radio" name="post_action" value="none"> 不执行任何操作</label>
+        <label class="radio-row"><input type="radio" name="post_action" value="close_game"> 关闭游戏</label>
+        <label class="radio-row"><input type="radio" name="post_action" value="shutdown"> 关机</label>
+      </div>
+    </div>
+
+  </div>
+  <div class="dialog-footer">
+    <button class="dlg-btn dlg-cancel" onclick="closeConfig()">取消</button>
+    <button class="dlg-btn dlg-ok" onclick="saveConfig()">保存</button>
+  </div>
+</div>
+</div>
+
+<!-- Update Dialog -->
+<div id="update-overlay" class="overlay" style="display:none" onclick="if(event.target===this)closeUpdate()">
+<div id="update-dialog" class="dialog" style="width:420px">
+  <div class="dialog-header">检查更新</div>
+  <div id="update-body" class="dialog-body" style="min-height:120px"></div>
+  <div class="dialog-footer">
+    <button class="dlg-btn dlg-cancel" onclick="closeUpdate()">关闭</button>
+  </div>
+</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

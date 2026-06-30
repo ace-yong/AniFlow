@@ -10,9 +10,9 @@ import json
 import time
 
 def _app_dir():
-    """返回 game-sky 数据目录（config、logs、tools 等都在此目录下）"""
+    """返回 AniFlow 数据目录（config、logs、tools 等都在此目录下）"""
     if getattr(sys, 'frozen', False):
-        return os.path.join(os.path.dirname(sys.executable), 'game-sky')
+        return os.path.join(os.path.dirname(sys.executable), 'AniFlow')
     return os.path.dirname(os.path.abspath(__file__))
 
 import threading
@@ -863,7 +863,7 @@ class _ToolsTab(QWidget):
                     QApplication.processEvents()
                     req = urllib.request.Request(
                         'https://api.github.com/repos/MaaXYZ/MaaEnd/releases/latest',
-                        headers={'User-Agent': 'game-sky/1.0'}
+                        headers={'User-Agent': 'AniFlow/1.0'}
                     )
                     resp = urllib.request.urlopen(req, timeout=15)
                     data = json.loads(resp.read().decode())
@@ -991,7 +991,7 @@ class MainWindow(QMainWindow):
     """主窗口 - 游戏卡片布局，支持独立启动/停止"""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('game-sky')
+        self.setWindowTitle('AniFlow')
         self.setMinimumSize(1000, 650)
 
         icon_path = os.path.join(os.path.dirname(__file__), 'icon.ico')
@@ -1408,7 +1408,7 @@ class MainWindow(QMainWindow):
 
     def _write_log(self, message, level='INFO'):
         date_str = datetime.now().strftime('%Y-%m-%d')
-        log_path = os.path.join(self._logs_dir, f'game-sky_{date_str}.log')
+        log_path = os.path.join(self._logs_dir, f'AniFlow_{date_str}.log')
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         try:
             with open(log_path, 'a', encoding='utf-8') as f:

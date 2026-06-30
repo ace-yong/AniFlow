@@ -24,7 +24,7 @@ logs/
 Thumbs.db
 .DS_Store
 
-# game-sky runtime
-game-sky/
+# AniFlow runtime
+AniFlow/
 stderr.txt
 stdout.txt

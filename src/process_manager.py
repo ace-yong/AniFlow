@@ -299,7 +299,7 @@ class ProcessManager:
                             subprocess.run(['taskkill', '/f', '/im', exe],
                                           capture_output=True, timeout=10)
                     elif post_action == 'shutdown':
-                        subprocess.run(['shutdown', '/s', '/t', '30', '/c', 'game-sky 一键运行已完成，即将关机'],
+                        subprocess.run(['shutdown', '/s', '/t', '30', '/c', 'AniFlow 一键运行已完成，即将关机'],
                                       capture_output=True, timeout=35)
             except Exception:
                 import traceback

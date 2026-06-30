@@ -336,7 +336,11 @@ if __name__ == '__main__':
     if not os.path.isfile(html):
         html = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'index.html')
     import webview
-    webview.create_window('AniFlow v' + VERSION, html, js_api=api, width=1100, height=700)
+    try:
+        webview.create_window('AniFlow v' + VERSION, html, js_api=api, width=1100, height=700)
+    except Exception as e:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(0, '启动失败: {}'.format(e), 'AniFlow Error', 0x10)
 
     def _detect_ma_path(self, drives=None):
         if drives is None:

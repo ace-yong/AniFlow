@@ -11,7 +11,7 @@ build/
 dist/
 electron/dist-*/
 electron/build-*/
-electron/aniflow-build-*/
+electron/aniflow-*/
 electron/release/
 electron/node_modules/
 electron/nodejs/

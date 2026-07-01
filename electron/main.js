@@ -1,4 +1,4 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, Menu } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const http = require('http');
@@ -97,6 +97,7 @@ function waitForServer(port) {
 
 // ---------- app lifecycle ----------
 app.whenReady().then(async () => {
+  Menu.setApplicationMenu(null);
   try {
     const port = await startPythonServer();
     await waitForServer(port);

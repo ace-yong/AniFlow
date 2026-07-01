@@ -104,8 +104,8 @@ app.whenReady().then(async () => {
     const savedState = loadWindowState();
 
     mainWindow = new BrowserWindow({
-      width: savedState?.width || 1100,
-      height: savedState?.height || 700,
+      width: savedState?.width || 1400,
+      height: savedState?.height || 900,
       x: savedState?.x,
       y: savedState?.y,
       title: 'AniFlow',

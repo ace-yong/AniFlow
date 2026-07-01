@@ -77,8 +77,8 @@ body{font-family:'Segoe UI','Microsoft YaHei',sans-serif;background:#f0f2f5;colo
 .radio-row input[type=radio]{width:16px;height:16px}
 .dialog-footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px;border-top:1px solid #eee}
 .dlg-btn{padding:8px 24px;border-radius:6px;font-size:13px;border:none;cursor:pointer}
-.dlg-cancel{background:transparent;color:#666;border:1px solid #d0d0d0}
-.dlg-cancel:hover{border-color:#999}
+.dlg-cancel{background:#f5f5f5;color:#999;border:1px solid #e0e0e0}
+.dlg-cancel:hover{background:#eee;color:#666}
 .dlg-ok{background:rgb(64,158,255);color:#fff}
 .dlg-ok:hover{background:rgb(48,138,230)}
 

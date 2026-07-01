@@ -245,7 +245,11 @@ document.addEventListener('DOMContentLoaded',function(){
 
 function openConfig(){
   document.getElementById('config-overlay').style.display='flex';
-  loadAccounts();
+  api('getPaths').then(function(p){
+    document.getElementById('cfg-od-path').value = p.od_script || '';
+    document.getElementById('cfg-od-python').value = p.od_python || '';
+    document.getElementById('cfg-ma-path').value = p.ma_path || '';
+  });
 }
 function closeConfig(){document.getElementById('config-overlay').style.display='none'}
 function switchTab(btn){

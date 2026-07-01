@@ -97,7 +97,6 @@ function waitForServer(port) {
 
 // ---------- app lifecycle ----------
 app.whenReady().then(async () => {
-
   try {
     const port = await startPythonServer();
     await waitForServer(port);

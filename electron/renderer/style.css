@@ -1,7 +1,7 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI','Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;height:100vh;overflow:hidden}
 #app{display:flex;flex-direction:column;height:100vh;position:relative}
-#app::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.15);backdrop-filter:blur(2px);z-index:0;pointer-events:none}
+#app::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.15);z-index:0;pointer-events:none}
 #app>*{position:relative;z-index:1}
 #toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);border-bottom:1px solid rgba(0,0,0,0.08)}
 .tb-btn{font-size:13px;font-weight:600;padding:9px 22px;border:none;border-radius:6px;cursor:pointer}

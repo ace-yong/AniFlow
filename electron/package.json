@@ -13,7 +13,7 @@
     "appId": "com.aniflow.app",
     "productName": "AniFlow",
     "directories": {
-      "output": "aniflow-build-20260701221231"
+      "output": "aniflow-20260701234004"
     },
     "files": [
       "main.js",

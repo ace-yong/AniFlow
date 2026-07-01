@@ -227,9 +227,9 @@ window.scanOD=scanOD;window.scanMaa=scanMaa;window.downloadTool=downloadTool;
 // ---------- config dialog ----------
 document.addEventListener('DOMContentLoaded',function(){
   api('getConfig').then(function(cfg){
-    document.getElementById('cfg-od-path').value=cfg.onedragon_path;
-    document.getElementById('cfg-od-python').value=cfg.onedragon_python;
-    document.getElementById('cfg-ma-path').value=cfg.maaend_path;
+    document.getElementById('cfg-od-path').value=cfg.onedragon_path||'';
+    document.getElementById('cfg-od-python').value=cfg.onedragon_python||'';
+    document.getElementById('cfg-ma-path').value=cfg.maaend_path||'';
     renderSequence(cfg.sequence);
     var radios=document.querySelectorAll('input[name="post_action"]');
     for(var i=0;i<radios.length;i++){if(radios[i].value===cfg.post_action)radios[i].checked=true}
@@ -248,7 +248,7 @@ function openConfig(){
     document.getElementById('cfg-od-path').value=cfg.onedragon_path||'';
     document.getElementById('cfg-od-python').value=cfg.onedragon_python||'';
     document.getElementById('cfg-ma-path').value=cfg.maaend_path||'';
-    renderSequence(cfg.sequence||[]);
+    renderSequence(cfg.sequence&&cfg.sequence.length?cfg.sequence:['onedragon','maaend']);
     var radios=document.querySelectorAll('input[name="post_action"]');
     for(var i=0;i<radios.length;i++){if(radios[i].value===cfg.post_action)radios[i].checked=true}
     if (cfg.exec_timeout !== undefined) document.getElementById('cfg-exec-timeout').value = cfg.exec_timeout;
@@ -264,16 +264,17 @@ function switchTab(btn){
 }
 
 function saveConfig(){
-  api('savePaths',[document.getElementById('cfg-od-path').value,document.getElementById('cfg-od-python').value,document.getElementById('cfg-ma-path').value]);
-  var seq=[];document.querySelectorAll('.seq-item').forEach(function(el){var cb=el.querySelector('input[type=\"checkbox\"]');if(cb.checked)seq.push(el.dataset.key)});
-  api('saveSequence',[seq]);
-  var a=document.querySelector('input[name=\"post_action\"]:checked');if(a)api('savePostAction',[a.value]);
-  var execCfg = {
-    timeout: parseInt(document.getElementById('cfg-exec-timeout').value) || 7200,
-    retry_count: parseInt(document.getElementById('cfg-exec-retry').value) || 3,
-    switch_delay: parseInt(document.getElementById('cfg-exec-switch').value) || 10
-  };
-  api('saveExecutionConfig',[execCfg]);
+  var a=document.querySelector('input[name="post_action"]:checked');
+  api('saveConfig',[{
+    onedragon_path: document.getElementById('cfg-od-path').value,
+    onedragon_python: document.getElementById('cfg-od-python').value,
+    maaend_path: document.getElementById('cfg-ma-path').value,
+    sequence: [].map.call(document.querySelectorAll('.seq-item input[type="checkbox"]:checked'),function(cb){return cb.closest('.seq-item').dataset.key}),
+    post_action: a?a.value:'close_game',
+    exec_timeout: parseInt(document.getElementById('cfg-exec-timeout').value)||7200,
+    exec_retry: parseInt(document.getElementById('cfg-exec-retry').value)||3,
+    exec_switch_delay: parseInt(document.getElementById('cfg-exec-switch').value)||10
+  }]);
   closeConfig();addLog('配置已保存','SUCCESS');
 }
 

@@ -19,6 +19,7 @@ def _get_drives():
             for i, letter in enumerate(string.ascii_uppercase):
                 if bitmask & (1 << i):
                     drives.append(f'{letter}:\\')
+            drives.reverse()
         except Exception:
             drives = ['C:\\', 'D:\\', 'E:\\', 'F:\\']
     else:
@@ -125,6 +126,7 @@ def _write_log(message, level='INFO'):
 # ---------- config ----------
 class ConfigManager:
     def __init__(self):
+        self._lock = threading.Lock()
         self.app_dir = os.path.dirname(os.path.abspath(__file__))
         self.config_dir = os.path.join(self.app_dir, 'config')
         os.makedirs(self.config_dir, exist_ok=True)
@@ -163,10 +165,6 @@ class ConfigManager:
                 return json.load(f)
         return {}
 
-    def save_settings(self):
-        with open(self.settings_file, 'w', encoding='utf-8') as f:
-            json.dump(self.settings, f, indent=2, ensure_ascii=False)
-
     def save_accounts(self):
         with open(self.accounts_file, 'w', encoding='utf-8') as f:
             json.dump(self.accounts, f, indent=2, ensure_ascii=False)
@@ -175,8 +173,17 @@ class ConfigManager:
         return self.settings.get(key, default)
 
     def set(self, key, val):
-        self.settings[key] = val
-        self.save_settings()
+        with self._lock:
+            self.settings[key] = val
+            self.save_settings_unlocked()
+
+    def save_settings_unlocked(self):
+        with open(self.settings_file, 'w', encoding='utf-8') as f:
+            json.dump(self.settings, f, indent=2, ensure_ascii=False)
+
+    def save_settings(self):
+        with self._lock:
+            self.save_settings_unlocked()
 
 
 config = ConfigManager()
@@ -214,6 +221,21 @@ class Api:
             'exec_retry': s.get('execution', {}).get('retry_count', 3),
             'exec_switch_delay': s.get('execution', {}).get('switch_delay', 10),
         }
+
+    def saveConfig(self, cfg):
+        with config._lock:
+            config.settings['onedragon'] = {'path': cfg.get('onedragon_path', ''), 'python_path': cfg.get('onedragon_python', '')}
+            config.settings['maaend'] = {'path': cfg.get('maaend_path', '')}
+            config.settings['sequence'] = cfg.get('sequence', [])
+            config.settings['post_action'] = cfg.get('post_action', 'close_game')
+            config.settings['execution'] = {
+                'timeout': cfg.get('exec_timeout', 7200),
+                'retry_count': cfg.get('exec_retry', 3),
+                'switch_delay': cfg.get('exec_switch_delay', 10)
+            }
+            config.save_settings_unlocked()
+        _write_log('配置已保存', 'INFO')
+        return True
 
     def savePaths(self, od_path, od_python, ma_path):
         config.set('onedragon', {'path': od_path, 'python_path': od_python})
@@ -322,9 +344,7 @@ class Api:
         return True
 
     def saveExecutionConfig(self, cfg):
-        s = config.settings
-        s['execution'] = cfg
-        config.save_settings()
+        config.set('execution', cfg)
         return True
 
     # --- accounts ---
@@ -412,10 +432,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     # --- wallpaper ---
     def _serve_wallpaper(self):
-        wallpaper_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wallpaper_source.jpg')
-        if os.path.isfile(wallpaper_path):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        wallpaper_path = None
+        content_type = None
+        for name in ['wallpaper_source.png', 'wallpaper_source.jpg']:
+            p = os.path.join(base_dir, name)
+            if os.path.isfile(p):
+                wallpaper_path = p
+                content_type = 'image/png' if name.endswith('.png') else 'image/jpeg'
+                break
+        if wallpaper_path:
             self.send_response(200)
-            self.send_header('Content-Type', 'image/jpeg')
+            self.send_header('Content-Type', content_type)
             self.send_header('Cache-Control', 'max-age=3600')
             self.end_headers()
             with open(wallpaper_path, 'rb') as f:

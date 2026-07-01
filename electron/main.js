@@ -6,6 +6,7 @@ const fs = require('fs');
 
 let mainWindow;
 let pythonProcess;
+let pythonKilled = false;
 
 // ---------- window state persistence ----------
 const statePath = path.join(app.getPath('userData'), 'window-state.json');
@@ -71,7 +72,7 @@ function startPythonServer() {
     });
 
     pythonProcess.on('exit', (code) => {
-      if (code !== 0) {
+      if (!pythonKilled && code !== 0) {
         dialog.showErrorBox('Python 退出', `Python 进程异常退出 (code: ${code})`);
       }
     });
@@ -134,6 +135,7 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   if (pythonProcess) {
+    pythonKilled = true;
     pythonProcess.kill();
   }
   if (process.platform !== 'darwin') {
@@ -143,6 +145,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   if (pythonProcess) {
+    pythonKilled = true;
     pythonProcess.kill();
   }
 });

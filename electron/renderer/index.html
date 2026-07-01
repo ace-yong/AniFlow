@@ -15,30 +15,25 @@
     </div>
   </div>
   <div id="main">
+
     <div id="sidebar">
       <div class="card">
         <div class="card-header">OneDragon <span class="card-sub">绝区零</span></div>
-        <div class="card-body">
-          <div class="card-row"><span id="od-indicator" class="indicator idle">●</span><span id="od-status" class="status-text idle">就绪</span></div>
-          <div class="card-btns">
-            <button id="od-start" class="card-btn card-start" onclick="api('startGame',['zenless_zone_zero'])">打开</button>
-            <button id="od-stop" class="card-btn card-stop" onclick="api('stopGame',['zenless_zone_zero'])" disabled>关闭</button>
-          </div>
+        <div class="card-btns">
+          <button class="card-btn card-start" onclick="api('startGame',['zenless_zone_zero'])">打开</button>
+          <button class="card-btn card-stop" onclick="api('stopGame',['zenless_zone_zero'])">关闭</button>
         </div>
       </div>
       <div class="card">
         <div class="card-header">MaaEnd <span class="card-sub">终末地</span></div>
-        <div class="card-body">
-          <div class="card-row"><span id="ma-indicator" class="indicator idle">●</span><span id="ma-status" class="status-text idle">就绪</span></div>
-          <div class="card-btns">
-            <button id="ma-start" class="card-btn card-start" onclick="api('startGame',['endfield'])">打开</button>
-            <button id="ma-stop" class="card-btn card-stop" onclick="api('stopGame',['endfield'])" disabled>关闭</button>
-          </div>
+        <div class="card-btns">
+          <button class="card-btn card-start" onclick="api('startGame',['endfield'])">打开</button>
+          <button class="card-btn card-stop" onclick="api('stopGame',['endfield'])">关闭</button>
         </div>
       </div>
       <div class="card-actions">
         <button class="card-btn card-start" onclick="startAll()">全部打开</button>
-        <button class="card-btn card-stop" onclick="stopAll()" disabled>全部关闭</button>
+        <button class="card-btn card-stop" onclick="stopAll()">全部关闭</button>
       </div>
     </div>
     <div id="log-area">

@@ -1,6 +1,6 @@
 {
   "name": "aniflow",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "游戏自动化调度工具",
   "author": "AniFlow Team",
   "main": "main.js",
@@ -21,9 +21,18 @@
       "renderer/**/*"
     ],
     "extraResources": [
-      { "from": "../electron/dist/gui_server.exe", "to": "gui_server.exe" },
-      { "from": "../electron/renderer", "to": "renderer" },
-      { "from": "../wallpaper_source.jpg", "to": "wallpaper_source.jpg" }
+      {
+        "from": "../electron/dist/gui_server.exe",
+        "to": "gui_server.exe"
+      },
+      {
+        "from": "../electron/renderer",
+        "to": "renderer"
+      },
+      {
+        "from": "../wallpaper_source.jpg",
+        "to": "wallpaper_source.jpg"
+      }
     ],
     "win": {
       "target": "nsis",

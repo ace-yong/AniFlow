@@ -25,37 +25,8 @@ function setStatus(msg, state) {
   ind.className = state;
 }
 
-// ---------- game card helpers ----------
-var _cards = {
-  zenless_zone_zero: { indicator: 'od-indicator', status: 'od-status', start: 'od-start', stop: 'od-stop' },
-  endfield: { indicator: 'ma-indicator', status: 'ma-status', start: 'ma-start', stop: 'ma-stop' }
-};
-var _labels = { zenless_zone_zero: '绝区零', endfield: '终末地' };
+var _gameLabels = { zenless_zone_zero: '绝区零', endfield: '终末地' };
 var _seqRunning = false;
-
-function setCardState(gt, state, statusText) {
-  var c = _cards[gt];
-  if (!c) return;
-  var indEl = document.getElementById(c.indicator);
-  var stEl = document.getElementById(c.status);
-  var startEl = document.getElementById(c.start);
-  var stopEl = document.getElementById(c.stop);
-  indEl.className = 'indicator ' + state;
-  stEl.className = 'status-text ' + state;
-  stEl.textContent = statusText || state;
-  startEl.disabled = (state === 'running' || state === 'starting');
-  stopEl.disabled = (state !== 'running' && state !== 'closing');
-}
-
-function updateAllButtons() {
-  var anyRunning = false;
-  for (var gt in _cards) {
-    var stEl = document.getElementById(_cards[gt].status);
-    if (stEl && stEl.className.indexOf('running') >= 0) anyRunning = true;
-  }
-  document.querySelectorAll('.card-actions .card-start')[0].disabled = anyRunning;
-  document.querySelectorAll('.card-actions .card-stop')[0].disabled = !anyRunning;
-}
 
 // ---------- SSE real-time events ----------
 function connectSSE() {
@@ -82,26 +53,19 @@ function connectSSE() {
       }
       return;
     }
-    var label = _labels[gt] || gt;
+    var label = _gameLabels[gt] || gt;
     if (st === 'running') {
-      setCardState(gt, 'running', '运行中');
       addLog(label + ' ● 启动成功', 'SUCCESS');
       setStatus('运行中...', 'running');
     } else if (st === 'closing') {
-      setCardState(gt, 'closing', '正在关闭...');
       addLog(label + ' ● 正在关闭...', 'INFO');
     } else if (st === 'stopped') {
-      setCardState(gt, 'idle', '已停止');
       addLog(label + ' ○ 已停止', 'WARNING');
-      var any = false;
-      for (var g in _cards) { if (document.getElementById(_cards[g].status).className.indexOf('running') >= 0) any = true; }
-      if (!any) setStatus('就绪', 'idle');
+      setStatus('就绪', 'idle');
     } else if (st === 'failed') {
-      setCardState(gt, 'error', '启动失败');
       addLog(label + ' ✗ 启动失败，请检查工具路径', 'ERROR');
       setStatus('启动失败', 'error');
     }
-    updateAllButtons();
   });
   es.addEventListener('output', function(e) {
     var d = JSON.parse(e.data);
@@ -136,21 +100,29 @@ function connectSSE() {
 
 // ---------- start / stop ----------
 function startAll(){
-  for (var gt in _cards) { api('startGame',[gt]); setCardState(gt, 'starting', '正在启动...'); }
+  for (var gt in _gameLabels) { api('startGame',[gt]); }
   addLog('正在打开所有工具...','INFO');
 }
 function stopAll(){
-  for (var gt in _cards) { api('stopGame',[gt]); }
+  for (var gt in _gameLabels) { api('stopGame',[gt]); }
   addLog('正在关闭所有工具...','INFO');
 }
 function startSequence(){
-  api('startSequence');
-  document.getElementById('btn-run').disabled = true;
-  document.getElementById('btn-stop').disabled = false;
-  document.getElementById('seq-status').textContent = '执行中...';
-  document.getElementById('seq-status').style.cssText = 'color:#FF9800;font-size:12px;padding:0 8px;font-weight:bold';
-  setStatus('执行中...', 'running');
-  _seqRunning = true;
+  if (_seqRunning) return;
+  api('getConfig').then(function(cfg){
+    var hasAny=cfg.sequence&&cfg.sequence.some(function(item){return item.enabled!==false});
+    if (!hasAny) {
+      addLog('没有可运行的工具，请在配置-执行顺序中勾选', 'WARNING');
+      return;
+    }
+    _seqRunning = true;
+    api('startSequence');
+    document.getElementById('btn-run').disabled = true;
+    document.getElementById('btn-stop').disabled = false;
+    document.getElementById('seq-status').textContent = '执行中...';
+    document.getElementById('seq-status').style.cssText = 'color:#FF9800;font-size:12px;padding:0 8px;font-weight:bold';
+    setStatus('执行中...', 'running');
+  });
 }
 function stopSequence(){
   api('stopSequence');
@@ -218,20 +190,6 @@ function downloadTool(name) {
   api('downloadTool', [name]);
 }
 
-// ---------- status polling fallback ----------
-function pollStatus() {
-  api('getAllStatus').then(function(st) {
-    for (var gt in st) {
-      if (st[gt] === true || st[gt] === 'running') {
-        setCardState(gt, 'running', '运行中');
-      } else {
-        setCardState(gt, 'idle', '已停止');
-      }
-    }
-  });
-}
-setInterval(pollStatus, 5000);
-
 window.startAll=startAll;window.stopAll=stopAll;window.clearLog=clearLog;
 window.openConfig=openConfig;window.closeConfig=closeConfig;
 window.switchTab=switchTab;window.saveConfig=saveConfig;
@@ -265,7 +223,7 @@ function openConfig(){
     document.getElementById('cfg-od-path').value=cfg.onedragon_path||'';
     document.getElementById('cfg-od-python').value=cfg.onedragon_python||'';
     document.getElementById('cfg-ma-path').value=cfg.maaend_path||'';
-    renderSequence(cfg.sequence&&cfg.sequence.length?cfg.sequence:['onedragon','maaend']);
+    renderSequence(cfg.sequence);
     var radios=document.querySelectorAll('input[name="post_action"]');
     for(var i=0;i<radios.length;i++){if(radios[i].value===cfg.post_action)radios[i].checked=true}
     if (cfg.exec_timeout !== undefined) document.getElementById('cfg-exec-timeout').value = cfg.exec_timeout;
@@ -282,32 +240,50 @@ function switchTab(btn){
 
 function saveConfig(){
   var a=document.querySelector('input[name="post_action"]:checked');
+  var seq=[].map.call(document.querySelectorAll('.seq-item'),function(el){return{name:el.dataset.key,enabled:!!(el.querySelector('input[type="checkbox"]')||{}).checked}});
   api('saveConfig',[{
     onedragon_path: document.getElementById('cfg-od-path').value,
     onedragon_python: document.getElementById('cfg-od-python').value,
     maaend_path: document.getElementById('cfg-ma-path').value,
-    sequence: [].map.call(document.querySelectorAll('.seq-item input[type="checkbox"]:checked'),function(cb){return cb.closest('.seq-item').dataset.key}),
+    sequence: seq,
     post_action: a?a.value:'close_game',
     exec_timeout: parseInt(document.getElementById('cfg-exec-timeout').value)||7200,
     exec_retry: parseInt(document.getElementById('cfg-exec-retry').value)||3,
     exec_switch_delay: parseInt(document.getElementById('cfg-exec-switch').value)||10
-  }]);
-  closeConfig();addLog('配置已保存','SUCCESS');
+  }]).then(function(){
+    addLog('配置已保存','SUCCESS');
+    closeConfig();
+  },function(){
+    addLog('配置保存失败','ERROR');
+  });
 }
 
 function renderSequence(seq){
   var labels={onedragon:'OneDragon（绝区零无头模式）',maaend:'MaaEnd（终末地）'};
   var el=document.getElementById('seq-list');el.innerHTML='';
-  seq.forEach(function(key){
-    var item=document.createElement('div');item.className='seq-item';item.dataset.key=key;item.draggable=true;
-    item.innerHTML='<input type=\"checkbox\" checked> <span class=\"seq-name\">'+(labels[key]||key)+'</span><span class="seq-move" onclick="moveSeqItem(this,-1)">▲</span><span class="seq-move" onclick="moveSeqItem(this,1)">▼</span>';
-    item.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/plain',key);this.classList.add('dragging')});
-    item.addEventListener('dragend',function(){this.classList.remove('dragging')});
-    item.addEventListener('dragover',function(e){e.preventDefault()});
-    item.addEventListener('drop',function(e){
+  var allKeys=Object.keys(labels);
+  var items=[];
+  // convert old string-array format to {name,enabled}
+  if (!seq||!seq.length) {
+    allKeys.forEach(function(k){items.push({name:k,enabled:true})});
+  } else if (typeof seq[0]=='string') {
+    var raw={}; seq.forEach(function(k){raw[k.replace(/^~/,'')]=!k.startsWith('~')});
+    seq.forEach(function(k){var n=k.replace(/^~/,'');if(allKeys.indexOf(n)>=0)items.push({name:n,enabled:raw[n]})});
+    allKeys.forEach(function(k){if(!items.some(function(i){return i.name===k}))items.push({name:k,enabled:false})});
+  } else {
+    items=seq.slice();
+    allKeys.forEach(function(k){if(!items.some(function(i){return i.name===k}))items.push({name:k,enabled:false})});
+  }
+  items.forEach(function(item){
+    var d=document.createElement('div');d.className='seq-item';d.dataset.key=item.name;d.draggable=true;
+    d.innerHTML='<input type=\"checkbox\"'+(item.enabled?' checked':'')+'> <span class=\"seq-name\">'+(labels[item.name]||item.name)+'</span><span class="seq-move" onclick="moveSeqItem(this,-1)">▲</span><span class="seq-move" onclick="moveSeqItem(this,1)">▼</span>';
+    d.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/plain',item.name);this.classList.add('dragging')});
+    d.addEventListener('dragend',function(){this.classList.remove('dragging')});
+    d.addEventListener('dragover',function(e){e.preventDefault()});
+    d.addEventListener('drop',function(e){
       e.preventDefault();var fk=e.dataTransfer.getData('text/plain'),tk=this.dataset.key;if(fk!==tk)swapSeqItems(fk,tk);
     });
-    el.appendChild(item);
+    el.appendChild(d);
   });
 }
 function moveSeqItem(btn,dir){

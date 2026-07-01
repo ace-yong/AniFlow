@@ -369,7 +369,11 @@ class ProcessManager:
         self._seq_process = None
 
         settings = self.config_manager.settings if self.config_manager else {}
-        sequence = settings.get('sequence', ['onedragon', 'maaend'])
+        raw = settings.get('sequence', ['onedragon', 'maaend'])
+        if raw and isinstance(raw[0], dict):
+            sequence = [item['name'] for item in raw if item.get('enabled', False)]
+        else:
+            sequence = [k for k in raw if not k.startswith('~')]
 
         def _run():
             try:

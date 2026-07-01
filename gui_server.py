@@ -4,7 +4,7 @@
 import sys, os, json, threading, socketserver, http.server, queue, time
 from datetime import datetime
 
-VERSION = "1.1.0"
+VERSION = "2.0.0"
 
 def _app_dir():
     if getattr(sys, 'frozen', False):

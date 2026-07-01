@@ -18,16 +18,12 @@ body{font-family:'Segoe UI','Microsoft YaHei',sans-serif;background:#f0f2f5;colo
 .tb-update{background:transparent;color:#888;border:1px solid #d0d0d0;cursor:pointer}
 .tb-update:hover{border-color:rgb(64,158,255);color:rgb(64,158,255)}
 #main{display:flex;flex:1;overflow:hidden}
-#sidebar{width:280px;min-width:280px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+#sidebar{width:220px;min-width:220px;padding:12px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
 .card{background:rgba(255,255,255,0.9);border-radius:10px;padding:14px}
 .card-header{font-size:14px;font-weight:700;margin-bottom:10px}
 .card-sub{font-weight:400;font-size:11px;color:#888;margin-left:6px}
-.card-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
-.indicator{font-size:14px}.indicator.idle{color:#bbb}.indicator.running{color:#52c41a}.indicator.error{color:#f44336}
-.status-text{font-size:13px}.status-text.idle{color:#999}.status-text.running{color:#52c41a;font-weight:600}.status-text.error{color:#f44336}
 .card-btns{display:flex;gap:8px}
 .card-btn{flex:1;padding:7px 0;border:none;border-radius:6px;font-size:13px;cursor:pointer}
-.card-btn:disabled{opacity:0.35;cursor:not-allowed}
 .card-start{background:rgba(64,158,255,0.12);color:rgb(64,158,255)}.card-start:hover:not(:disabled){background:rgba(64,158,255,0.2)}
 .card-stop{background:rgba(255,77,79,0.12);color:rgb(255,77,79)}.card-stop:hover:not(:disabled){background:rgba(255,77,79,0.2)}
 .card-actions{display:flex;gap:8px;margin-top:auto}

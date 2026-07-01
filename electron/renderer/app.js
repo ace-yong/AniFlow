@@ -44,7 +44,7 @@ function setCardState(gt, state, statusText) {
   stEl.className = 'status-text ' + state;
   stEl.textContent = statusText || state;
   startEl.disabled = (state === 'running' || state === 'starting');
-  stopEl.disabled = (state !== 'running');
+  stopEl.disabled = (state !== 'running' && state !== 'closing');
 }
 
 function updateAllButtons() {
@@ -87,6 +87,9 @@ function connectSSE() {
       setCardState(gt, 'running', '运行中');
       addLog(label + ' ● 启动成功', 'SUCCESS');
       setStatus('运行中...', 'running');
+    } else if (st === 'closing') {
+      setCardState(gt, 'closing', '正在关闭...');
+      addLog(label + ' ● 正在关闭...', 'INFO');
     } else if (st === 'stopped') {
       setCardState(gt, 'idle', '已停止');
       addLog(label + ' ○ 已停止', 'WARNING');
@@ -137,7 +140,7 @@ function startAll(){
   addLog('正在打开所有工具...','INFO');
 }
 function stopAll(){
-  for (var gt in _cards) { api('stopGame',[gt]); setCardState(gt, 'idle', '正在停止...'); }
+  for (var gt in _cards) { api('stopGame',[gt]); }
   addLog('正在关闭所有工具...','INFO');
 }
 function startSequence(){
@@ -214,6 +217,20 @@ function downloadTool(name) {
   setDlStatus('正在下载 ' + name + '...');
   api('downloadTool', [name]);
 }
+
+// ---------- status polling fallback ----------
+function pollStatus() {
+  api('getAllStatus').then(function(st) {
+    for (var gt in st) {
+      if (st[gt] === true || st[gt] === 'running') {
+        setCardState(gt, 'running', '运行中');
+      } else {
+        setCardState(gt, 'idle', '已停止');
+      }
+    }
+  });
+}
+setInterval(pollStatus, 5000);
 
 window.startAll=startAll;window.stopAll=stopAll;window.clearLog=clearLog;
 window.openConfig=openConfig;window.closeConfig=closeConfig;

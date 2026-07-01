@@ -3,10 +3,21 @@
 """Headless HTTP server for Electron frontend"""
 import sys, os, json, threading, socketserver, http.server, queue, time
 from datetime import datetime
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
-from process_manager import ProcessManager
 
 VERSION = "1.1.0"
+
+def _app_dir():
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    return os.path.dirname(os.path.abspath(__file__))
+
+def _exe_dir():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+sys.path.insert(0, os.path.join(_app_dir(), 'src'))
+from process_manager import ProcessManager
 
 # ---------- scan utilities ----------
 def _get_drives():
@@ -105,8 +116,7 @@ _logs_dir = None
 
 def _init_logs():
     global _logs_dir
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    _logs_dir = os.path.join(app_dir, 'logs')
+    _logs_dir = os.path.join(_exe_dir(), 'logs')
     os.makedirs(_logs_dir, exist_ok=True)
 
 def _write_log(message, level='INFO'):
@@ -127,7 +137,7 @@ def _write_log(message, level='INFO'):
 class ConfigManager:
     def __init__(self):
         self._lock = threading.Lock()
-        self.app_dir = os.path.dirname(os.path.abspath(__file__))
+        self.app_dir = _exe_dir()
         self.config_dir = os.path.join(self.app_dir, 'config')
         os.makedirs(self.config_dir, exist_ok=True)
         self.settings_file = os.path.join(self.config_dir, 'settings.json')
@@ -265,8 +275,7 @@ class Api:
 
     def _do_download(self, name):
         import urllib.request, zipfile, io, shutil, subprocess, traceback
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        target = os.path.join(base_dir, 'tools', name)
+        target = os.path.join(_app_dir(), 'tools', name)
         try:
             _sse_broadcast('download_status', json.dumps({'msg': f'开始下载 {name}...', 'name': name, 'done': False}))
             if name == 'MaaEnd':
@@ -361,13 +370,14 @@ class Api:
         return config.task_definitions
 
     # --- game control ---
+    def getAllStatus(self):
+        return {gt: pm.is_running(gt) for gt in ['zenless_zone_zero', 'endfield']}
+
     def startGame(self, game_type):
-        ok, reason = pm.start_game(game_type)
-        return ok
+        return pm.start_game(game_type)
 
     def stopGame(self, game_type):
-        ok, reason = pm.stop_game(game_type)
-        return ok
+        return pm.stop_game(game_type)
 
     def startSequence(self):
         pm.run_sequence()
@@ -378,7 +388,7 @@ class Api:
         _write_log('一键运行 - 已停止', 'WARNING')
 
     def openLogFolder(self):
-        folder = _logs_dir or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+        folder = _logs_dir or os.path.join(_exe_dir(), 'logs')
         os.makedirs(folder, exist_ok=True)
         os.startfile(folder)
         return True
@@ -432,7 +442,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     # --- wallpaper ---
     def _serve_wallpaper(self):
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+        base_dir = _exe_dir()
         wallpaper_path = None
         content_type = None
         for name in ['wallpaper_source.png', 'wallpaper_source.jpg']:
@@ -497,16 +507,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 def _log_exception(exc_type, exc_value, exc_traceback):
     import traceback, platform
     msg = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    log_dir = os.path.join(app_dir, 'logs')
+    log_dir = os.path.join(_exe_dir(), 'logs')
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, f'crash_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
     with open(log_path, 'w', encoding='utf-8') as f:
         f.write('\ufeff')
         f.write(f'[CRASH] {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n')
         f.write(f'Version: {VERSION}\n')
-        f.write(f'Python: {sys.version}\n')
-        f.write(f'OS: {platform.system()} {platform.release()}\n\n')
+        f.write(f'Python: {sys.version}\n\n')
         f.write(msg)
     print(f'程序崩溃，日志已保存: {log_path}', file=sys.stderr)
     sys.exit(1)
@@ -514,14 +522,13 @@ def _log_exception(exc_type, exc_value, exc_traceback):
 
 def _migrate_config():
     """从旧目录迁移配置"""
-    app_dir = os.path.dirname(os.path.abspath(__file__))
-    dst = os.path.join(app_dir, 'config')
+    dst = os.path.join(_exe_dir(), 'config')
     if os.path.exists(os.path.join(dst, 'settings.json')):
         return
     old_names = ['game-sky', 'gamesky']
     candidates = []
     for old in old_names:
-        candidates.append(os.path.join(app_dir, old, 'config', 'settings.json'))
+        candidates.append(os.path.join(_app_dir(), old, 'config', 'settings.json'))
     candidates.append(os.path.join(os.getcwd(), 'config', 'settings.json'))
     for src in candidates:
         if os.path.exists(src):
@@ -541,8 +548,8 @@ if __name__ == '__main__':
     _migrate_config()
     _init_logs()
     _write_log(f'AniFlow v{VERSION} 服务器启动', 'INFO')
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    renderer_dir = os.path.join(script_dir, 'renderer')
+    script_dir = _app_dir()
+    renderer_dir = os.path.join(_exe_dir(), 'renderer')
     if os.path.isdir(renderer_dir):
         static_dir = renderer_dir
     else:

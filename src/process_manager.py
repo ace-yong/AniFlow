@@ -15,11 +15,17 @@ class GameProcess:
         self._thread: Optional[threading.Thread] = None
         self._gen = 0
         self._pid: Optional[int] = None
+        self._exe_name = ''
+        self._poll_exe = []
+        self.monitor_gen = 0
+        self._exited = False
         self.on_exit: Optional[callable] = None
         self.on_output: Optional[callable] = None
 
     @property
     def is_running(self):
+        if self._poll_exe:
+            return self._running
         if self.process and self.process.poll() is not None:
             self._running = False
         return self._running
@@ -35,12 +41,32 @@ class GameProcess:
         )
         self._thread.start()
         self._ready.wait(timeout=5)
+        if self._running:
+            threading.Thread(target=self._health_check, daemon=True).start()
         return self._running
+
+    def _health_check(self):
+        while self._running:
+            time.sleep(3)
+            if self._poll_exe:
+                continue
+            if self.process and self.process.poll() is not None:
+                if self._exited:
+                    return
+                self._exited = True
+                self._gen += 1
+                self._running = False
+                self.process = None
+                self._pid = None
+                if self.on_exit:
+                    self.on_exit()
+                return
 
     def _run(self, args, cwd, env):
         my_gen = self._target_gen
         self.process = None
         self._pid = None
+        self._exe_name = os.path.basename(args[0]) if args else ''
         try:
             self.process = subprocess.Popen(
                 args, cwd=cwd, env=env,
@@ -67,35 +93,60 @@ class GameProcess:
             traceback.print_exc()
         finally:
             if self._gen == my_gen:
-                was_running = self._running
+                if os.name == 'nt' and self._exe_name and self.process and self.process.returncode is not None and self.process.returncode != 0:
+                    import time
+                    poll_names = list(self._poll_exe) if self._poll_exe else [self._exe_name]
+                    wait_until = time.time() + 60
+                    while time.time() < wait_until:
+                        if self._gen != my_gen:
+                            return
+                        for name in poll_names:
+                            r = subprocess.run(['tasklist', '/fi', f'imagename eq {name}', '/nh'],
+                                               capture_output=True, text=True, timeout=5)
+                            if name.lower() in r.stdout.lower():
+                                while time.time() < wait_until + 120:
+                                    if self._gen != my_gen:
+                                        return
+                                    still_running = False
+                                    for n in poll_names:
+                                        r2 = subprocess.run(['tasklist', '/fi', f'imagename eq {n}', '/nh'],
+                                                           capture_output=True, text=True, timeout=5)
+                                        if n.lower() in r2.stdout.lower():
+                                            still_running = True
+                                            break
+                                    if not still_running:
+                                        break
+                                    time.sleep(2)
+                                self._running = False
+                                self.process = None
+                                self._pid = None
+                                if self.on_exit:
+                                    self.on_exit()
+                                return
+                        time.sleep(1)
+                if self._exited:
+                    return
+                self._exited = True
                 self._running = False
                 self.process = None
                 self._pid = None
-                if was_running and self.on_exit:
+                if self.on_exit:
                     self.on_exit()
 
     def stop(self):
-        pid = self._pid
-        if pid and self._running:
-            try:
-                if os.name == 'nt':
-                    subprocess.run(
-                        ['taskkill', '/f', '/t', '/pid', str(pid)],
-                        capture_output=True, timeout=10
-                    )
-                else:
-                    if self.process:
-                        self.process.kill()
-            except Exception:
-                pass
-            self._gen += 1
-            self._running = False
-            self.process = None
-            self._pid = None
-            if self._thread:
-                self._thread.join(timeout=3)
-            return True
-        return False
+        if not self._running:
+            return False
+        self._gen += 1
+        if os.name == 'nt':
+            if self._pid:
+                subprocess.run(
+                    ['taskkill', '/f', '/t', '/pid', str(self._pid)],
+                    capture_output=True, timeout=10
+                )
+        else:
+            if self.process:
+                self.process.kill()
+        return True
 
 
 class ProcessManager:
@@ -125,6 +176,8 @@ class ProcessManager:
             gp = GameProcess(game_type, name)
             gp.on_exit = lambda gt=game_type: self._notify(gt, 'stopped')
             gp.on_output = lambda line, gt=game_type: self._notify_output(gt, line)
+            if game_type == 'endfield':
+                gp._poll_exe = ['MaaEnd.exe', 'Endfield.exe']
             self._games[game_type] = gp
         return self._games[game_type]
 
@@ -134,17 +187,24 @@ class ProcessManager:
             return True
 
         settings = self.config_manager.settings if self.config_manager else {}
-        args = []
-        cwd = None
-        env = None
 
         if game_type == 'endfield':
             tool_path = settings.get('maaend', {}).get('path', '')
             if not tool_path or not os.path.exists(tool_path):
                 self._notify(game_type, 'failed')
                 return False
-            args = [tool_path]
-            cwd = os.path.dirname(tool_path)
+            gp._poll_exe = ['MaaEnd.exe', 'Endfield.exe']
+            if os.name == 'nt':
+                import ctypes
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", tool_path, None, os.path.dirname(tool_path), 1)
+            else:
+                import subprocess
+                subprocess.Popen([tool_path], cwd=os.path.dirname(tool_path))
+            gp.monitor_gen = 0
+            gp._running = True
+            self._notify(game_type, 'running')
+            threading.Thread(target=self._monitor_poll, args=(game_type,), daemon=True).start()
+            return True
         elif game_type == 'zenless_zone_zero':
             tool_path = settings.get('onedragon', {}).get('path', '')
             python_path = settings.get('onedragon', {}).get('python_path', 'python')
@@ -156,24 +216,51 @@ class ProcessManager:
             env['PYTHONPATH'] = os.path.join(project_dir, 'src')
             args = [python_path, tool_path]
             cwd = project_dir
+            ok = gp.start(args, cwd=cwd, env=env)
+            if ok:
+                self._notify(game_type, 'running')
+            else:
+                self._notify(game_type, 'failed')
+            return ok
         else:
             return False
 
-        ok = gp.start(args, cwd=cwd, env=env)
-        if ok:
-            self._notify(game_type, 'running')
-        else:
-            self._notify(game_type, 'failed')
-        return ok
+    def _monitor_poll(self, game_type):
+        gp = self._get_game(game_type)
+        poll_names = list(gp._poll_exe) if gp._poll_exe else []
+        my_gen = gp.monitor_gen
+        start = time.time()
+        while gp._running and gp.monitor_gen == my_gen:
+            found = False
+            try:
+                for name in poll_names:
+                    r = subprocess.run(['tasklist', '/fi', f'imagename eq {name}', '/nh'],
+                                       capture_output=True, text=True, timeout=5)
+                    if name in r.stdout:
+                        found = True
+                        break
+            except Exception:
+                pass
+            if not found:
+                if time.time() - start < 5:
+                    time.sleep(1)
+                    continue
+                gp._running = False
+                self._notify(game_type, 'stopped')
+                return
+            time.sleep(2)
 
     def stop_game(self, game_type: str) -> bool:
         gp = self._games.get(game_type)
         if not gp:
             return False
-        ok = gp.stop()
-        if ok:
-            self._notify(game_type, 'stopped')
-        return ok
+        if not gp._running:
+            return False
+        gp.stop()
+        for name in gp._poll_exe:
+            subprocess.run(['taskkill', '/f', '/im', name], capture_output=True, timeout=10)
+        self._notify(game_type, 'closing')
+        return True
 
     def start_all(self):
         for gt in ['zenless_zone_zero', 'endfield']:

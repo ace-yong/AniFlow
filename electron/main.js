@@ -45,10 +45,8 @@ function getAppDir() {
 
 function startPythonServer() {
   return new Promise((resolve, reject) => {
-    const pythonPath = process.platform === 'win32' ? 'python' : 'python3';
-    const scriptPath = getResourcePath('gui_server.py');
-
-    pythonProcess = spawn(pythonPath, [scriptPath], {
+    const exePath = getResourcePath('gui_server.exe');
+    pythonProcess = spawn(exePath, [], {
       cwd: getAppDir(),
       stdio: ['pipe', 'pipe', 'pipe']
     });
@@ -63,21 +61,21 @@ function startPythonServer() {
     });
 
     pythonProcess.stderr.on('data', (data) => {
-      console.error(`Python: ${data}`);
+      console.error(`gui_server: ${data}`);
     });
 
     pythonProcess.on('error', (err) => {
-      dialog.showErrorBox('启动失败', `无法启动 Python 服务器:\n${err.message}\n\n请确保已安装 Python 3。`);
+      dialog.showErrorBox('启动失败', `无法启动服务器:\n${err.message}`);
       reject(err);
     });
 
     pythonProcess.on('exit', (code) => {
       if (!pythonKilled && code !== 0) {
-        dialog.showErrorBox('Python 退出', `Python 进程异常退出 (code: ${code})`);
+        dialog.showErrorBox('服务器异常退出', `gui_server 异常退出 (code: ${code})`);
       }
     });
 
-    setTimeout(() => reject(new Error('Python 服务器启动超时')), 10000);
+    setTimeout(() => reject(new Error('服务器启动超时')), 10000);
   });
 }
 
@@ -96,8 +94,37 @@ function waitForServer(port) {
 
 
 
+// ---------- admin check ----------
+function isAdmin() {
+  if (process.platform !== 'win32') return true;
+  try {
+    const { execSync } = require('child_process');
+    execSync('net session', { timeout: 2000, stdio: 'ignore' });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function relaunchAsAdmin() {
+  const exePath = process.execPath;
+  const args = process.argv.slice(1).map(a => `"${a.replace(/"/g, '\\"')}"`).join(' ');
+  const ps = require('child_process').spawn(
+    'powershell.exe',
+    ['-NoProfile', '-Command',
+     `Start-Process -FilePath '${exePath}' -Verb RunAs -ArgumentList @(${args}) -WindowStyle Normal`],
+    { detached: true, stdio: 'ignore' }
+  );
+  ps.unref();
+  app.exit(0);
+}
+
 // ---------- app lifecycle ----------
 app.whenReady().then(async () => {
+  if (process.platform === 'win32' && !isAdmin() && !process.argv.includes('--no-elevate')) {
+    relaunchAsAdmin();
+    return;
+  }
   Menu.setApplicationMenu(null);
   try {
     const port = await startPythonServer();
@@ -106,7 +133,7 @@ app.whenReady().then(async () => {
     const savedState = loadWindowState();
 
     mainWindow = new BrowserWindow({
-      width: savedState?.width || 1400,
+      width: savedState?.width || 1600,
       height: savedState?.height || 900,
       x: savedState?.x,
       y: savedState?.y,

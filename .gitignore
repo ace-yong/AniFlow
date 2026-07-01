@@ -43,4 +43,12 @@ out.txt
 # Scripts
 scripts/
 
+# Dev artifacts
+check_asar.py
+check_mainjs.py
+capture.py
+find_window.py
+electron/*.spec
+update_asar.py
+
 # IDE

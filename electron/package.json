@@ -13,7 +13,7 @@
     "appId": "com.aniflow.app",
     "productName": "AniFlow",
     "directories": {
-      "output": "aniflow-20260701234004"
+      "output": "aniflow-202607020110"
     },
     "files": [
       "main.js",
@@ -21,14 +21,13 @@
       "renderer/**/*"
     ],
     "extraResources": [
-      { "from": "../gui_server.py", "to": "gui_server.py" },
+      { "from": "../electron/dist/gui_server.exe", "to": "gui_server.exe" },
       { "from": "../electron/renderer", "to": "renderer" },
-      { "from": "../src", "to": "src" },
-      { "from": "../config", "to": "config" },
       { "from": "../wallpaper_source.jpg", "to": "wallpaper_source.jpg" }
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "requestedExecutionLevel": "requireAdministrator"
     },
     "nsis": {
       "oneClick": false,

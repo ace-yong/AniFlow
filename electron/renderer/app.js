@@ -222,8 +222,7 @@ window.checkUpdate=checkUpdate;window.closeUpdate=closeUpdate;
 window.openLogFolder=openLogFolder;
 window.startSequence=startSequence;window.stopSequence=stopSequence;
 window.scanOD=scanOD;window.scanMaa=scanMaa;window.downloadTool=downloadTool;
-window.addAccount=addAccount;window.editAccount=editAccount;window.deleteAccount=deleteAccount;
-window.closeAcctEdit=closeAcctEdit;window.saveAcctEdit=saveAcctEdit;
+
 
 // ---------- config dialog ----------
 document.addEventListener('DOMContentLoaded',function(){
@@ -245,10 +244,16 @@ document.addEventListener('DOMContentLoaded',function(){
 
 function openConfig(){
   document.getElementById('config-overlay').style.display='flex';
-  api('getPaths').then(function(p){
-    document.getElementById('cfg-od-path').value = p.od_script || '';
-    document.getElementById('cfg-od-python').value = p.od_python || '';
-    document.getElementById('cfg-ma-path').value = p.ma_path || '';
+  api('getConfig').then(function(cfg){
+    document.getElementById('cfg-od-path').value=cfg.onedragon_path||'';
+    document.getElementById('cfg-od-python').value=cfg.onedragon_python||'';
+    document.getElementById('cfg-ma-path').value=cfg.maaend_path||'';
+    renderSequence(cfg.sequence||[]);
+    var radios=document.querySelectorAll('input[name="post_action"]');
+    for(var i=0;i<radios.length;i++){if(radios[i].value===cfg.post_action)radios[i].checked=true}
+    if (cfg.exec_timeout !== undefined) document.getElementById('cfg-exec-timeout').value = cfg.exec_timeout;
+    if (cfg.exec_retry !== undefined) document.getElementById('cfg-exec-retry').value = cfg.exec_retry;
+    if (cfg.exec_switch_delay !== undefined) document.getElementById('cfg-exec-switch').value = cfg.exec_switch_delay;
   });
 }
 function closeConfig(){document.getElementById('config-overlay').style.display='none'}

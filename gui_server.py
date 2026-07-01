@@ -84,7 +84,7 @@ def _detect_ma_path(drives=None):
     if drives is None:
         drives = _get_drives()
     roots = list(drives) + [os.path.expanduser('~')]
-    return _search_deep(roots, {'MaaEnd.exe'}, 5)
+    return _search_deep(roots, {'MaaEnd.exe'}, 2)
 
 # ---------- SSE ----------
 _sse_clients = []

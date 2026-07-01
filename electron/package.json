@@ -2,6 +2,7 @@
   "name": "aniflow",
   "version": "1.1.0",
   "description": "游戏自动化调度工具",
+  "author": "AniFlow Team",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -12,28 +13,22 @@
     "appId": "com.aniflow.app",
     "productName": "AniFlow",
     "directories": {
-      "output": "dist-electron"
+      "output": "aniflow-build-20260701221231"
     },
     "files": [
       "main.js",
-      "gui_server.py",
-      "renderer/**/*",
-      "src/**/*",
-      "config/**/*"
+      "preload.js",
+      "renderer/**/*"
     ],
     "extraResources": [
-      {
-        "from": "src",
-        "to": "src"
-      },
-      {
-        "from": "config",
-        "to": "config"
-      }
+      { "from": "../gui_server.py", "to": "gui_server.py" },
+      { "from": "../electron/renderer", "to": "renderer" },
+      { "from": "../src", "to": "src" },
+      { "from": "../config", "to": "config" },
+      { "from": "../wallpaper_source.jpg", "to": "wallpaper_source.jpg" }
     ],
     "win": {
-      "target": "nsis",
-      "icon": "icon.ico"
+      "target": "nsis"
     },
     "nsis": {
       "oneClick": false,
@@ -41,7 +36,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^33.0.0",
+    "electron": "^33.4.11",
     "electron-builder": "^25.0.0"
   }
 }

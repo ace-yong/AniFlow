@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const http = require('http');
@@ -93,71 +93,10 @@ function waitForServer(port) {
   });
 }
 
-// ---------- app menu ----------
-function buildMenu() {
-  const template = [
-    {
-      label: 'AniFlow',
-      submenu: [
-        { role: 'about', label: '关于 AniFlow' },
-        { type: 'separator' },
-        { role: 'quit', label: '退出' }
-      ]
-    },
-    {
-      label: '编辑',
-      submenu: [
-        { role: 'undo', label: '撤销' },
-        { role: 'redo', label: '重做' },
-        { type: 'separator' },
-        { role: 'cut', label: '剪切' },
-        { role: 'copy', label: '复制' },
-        { role: 'paste', label: '粘贴' }
-      ]
-    },
-    {
-      label: '视图',
-      submenu: [
-        { role: 'reload', label: '刷新' },
-        { role: 'toggleDevTools', label: '开发者工具' },
-        { type: 'separator' },
-        { role: 'resetZoom', label: '重置缩放' },
-        { role: 'zoomIn', label: '放大' },
-        { role: 'zoomOut', label: '缩小' }
-      ]
-    },
-    {
-      label: '帮助',
-      submenu: [
-        {
-          label: '日志目录',
-          click: async () => {
-            const logsDir = path.join(getAppDir(), 'logs');
-            if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
-            shell.openPath(logsDir);
-          }
-        },
-        { type: 'separator' },
-        {
-          label: '关于',
-          click: () => {
-            dialog.showMessageBox(mainWindow, {
-              type: 'info',
-              title: '关于 AniFlow',
-              message: 'AniFlow v1.1.0',
-              detail: '游戏自动化调度工具\n支持绝区零和终末地的自动化任务管理'
-            });
-          }
-        }
-      ]
-    }
-  ];
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
-}
+
 
 // ---------- app lifecycle ----------
 app.whenReady().then(async () => {
-  buildMenu();
 
   try {
     const port = await startPythonServer();
